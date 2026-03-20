@@ -1,0 +1,71 @@
+@import "tailwindcss";
+
+@theme inline {
+  --font-sans: "Plus Jakarta Sans", sans-serif;
+
+  --color-primary: #4343d5;
+  --color-primary-container: #5d5fef;
+  --color-on-primary: #ffffff;
+  --color-on-primary-container: #faf7ff;
+
+  --color-secondary: #575995;
+  --color-secondary-container: #babbfe;
+  --color-on-secondary: #ffffff;
+  --color-on-secondary-container: #474984;
+
+  --color-tertiary: #904400;
+  --color-tertiary-container: #b65700;
+  --color-tertiary-fixed: #ffdbc8;
+  --color-on-tertiary-fixed-variant: #743500;
+
+  --color-error: #ba1a1a;
+  --color-error-container: #ffdad6;
+
+  --color-surface: #fcf8ff;
+  --color-surface-dim: #dbd8e5;
+  --color-surface-bright: #fcf8ff;
+  --color-surface-container-lowest: #ffffff;
+  --color-surface-container-low: #f5f2fe;
+  --color-surface-container: #efecf9;
+  --color-surface-container-high: #e9e6f3;
+  --color-surface-container-highest: #e4e1ed;
+  --color-surface-tint: #4849da;
+
+  --color-on-surface: #1b1b23;
+  --color-on-surface-variant: #464555;
+  --color-outline: #767586;
+  --color-outline-variant: #c7c4d7;
+
+  --color-inverse-surface: #302f39;
+  --color-inverse-on-surface: #f2effb;
+  --color-inverse-primary: #c1c1ff;
+
+  --color-background: #fcf8ff;
+  --color-on-background: #1b1b23;
+}
+
+body {
+  font-family: var(--font-sans);
+  background-color: var(--color-background);
+  color: var(--color-on-surface);
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Hide scrollbar for clean tool look */
+::-webkit-scrollbar {
+  width: 0px;
+  background: transparent;
+}
+
+/* Material Symbols */
+.material-symbols-outlined {
+  font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+  display: inline-block;
+  line-height: 1;
+  text-transform: none;
+  letter-spacing: normal;
+  word-wrap: normal;
+  white-space: nowrap;
+  direction: ltr;
+  vertical-align: middle;
+}
