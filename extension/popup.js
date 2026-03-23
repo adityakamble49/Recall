@@ -142,7 +142,7 @@ function showMain(tab, collections) {
     </div>
     <div class="current-tab">
       <div class="label">Current Tab</div>
-      <div class="title">${escapeHtml(tab.title || "Untitled")}</div>
+      <input type="text" id="title-input" value="${escapeAttr(tab.title || "Untitled")}" style="width:100%;font-size:13px;font-weight:700;background:transparent;border:none;border-bottom:2px solid transparent;padding:2px 0;font-family:inherit;color:#1b1b23;outline:none;" onfocus="this.style.borderBottomColor='#4343d5'" onblur="this.style.borderBottomColor='transparent'" />
       <div class="url">${escapeHtml(tab.url || "")}</div>
     </div>
     <div class="form">
@@ -174,7 +174,7 @@ function showMain(tab, collections) {
       const res = await apiFetch("/api/bookmarks", {
         method: "POST",
         body: JSON.stringify({
-          title: tab.title || tab.url,
+          title: document.getElementById("title-input").value.trim() || tab.url,
           url: tab.url,
           collectionId: select.value ? parseInt(select.value) : null,
         }),
@@ -224,6 +224,10 @@ function escapeHtml(str) {
   const div = document.createElement("div");
   div.textContent = str;
   return div.innerHTML;
+}
+
+function escapeAttr(str) {
+  return str.replace(/&/g, "&amp;").replace(/"/g, "&quot;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
 }
 
 init();
