@@ -1,6 +1,6 @@
 // ---- CONFIG ----
 const PROD_URL = "https://recall-ebon.vercel.app";
-const DEV_URL = "http://localhost:3000";
+const DEV_URL = "http://localhost:3030";
 
 const app = document.getElementById("app");
 let API_BASE = PROD_URL;
@@ -183,6 +183,10 @@ function showMain(tab, collections) {
         document.getElementById("status").innerHTML = `<div class="status success">✓ Saved!</div>`;
         btn.textContent = "Saved!";
         setTimeout(() => { btn.textContent = "Save Bookmark"; btn.disabled = false; }, 2000);
+      } else if (res.status === 409) {
+        document.getElementById("status").innerHTML = `<div class="status error">Already saved in this collection.</div>`;
+        btn.disabled = false;
+        btn.textContent = "Save Bookmark";
       } else {
         throw new Error();
       }

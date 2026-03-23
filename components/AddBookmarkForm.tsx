@@ -19,6 +19,7 @@ export function AddBookmarkForm({ collections, preselectedCollection, isCollecti
   const [url, setUrl] = useState("");
   const [title, setTitle] = useState("");
   const [selectedCollection, setSelectedCollection] = useState<number | undefined>(preselectedCollection);
+  const [error, setError] = useState<string | null>(null);
 
   // Collection fields
   const [colName, setColName] = useState("");
@@ -29,8 +30,13 @@ export function AddBookmarkForm({ collections, preselectedCollection, isCollecti
     e.preventDefault();
     if (!url.trim() || !title.trim()) return;
     setLoading(true);
+    setError(null);
     try {
-      await createBookmark({ title, url, collectionId: selectedCollection });
+      const result = await createBookmark({ title, url, collectionId: selectedCollection });
+      if (result.error) {
+        setError(result.error);
+        return;
+      }
       router.push(selectedCollection ? `/collections/${selectedCollection}` : "/");
     } finally {
       setLoading(false);
@@ -171,6 +177,9 @@ export function AddBookmarkForm({ collections, preselectedCollection, isCollecti
             </button>
           </div>
         </div>
+
+        {/* Error */}
+        {error && <p className="text-error text-sm font-bold">{error}</p>}
 
         {/* Actions */}
         <div className="pt-6 flex flex-col md:flex-row gap-4 items-center justify-end">

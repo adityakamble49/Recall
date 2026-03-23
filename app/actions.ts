@@ -71,9 +71,16 @@ export async function getCollectionById(id: number) {
   return col ?? null;
 }
 
-export async function createBookmark(data: { title: string; url: string; description?: string; collectionId?: number }) {
+export async function createBookmark(data: { title: string; url: string; description?: string; collectionId?: number }): Promise<{ error?: string }> {
   const session = await getSession();
-  // Extract favicon from URL
+
+  // Duplicate check within same collection
+  const where = data.collectionId
+    ? and(eq(bookmarks.userId, session.user!.id!), eq(bookmarks.collectionId, data.collectionId), eq(bookmarks.url, data.url))
+    : and(eq(bookmarks.userId, session.user!.id!), eq(bookmarks.url, data.url));
+  const [existing] = await (db as any).select({ id: bookmarks.id }).from(bookmarks).where(where).limit(1);
+  if (existing) return { error: "Already saved in this collection" };
+
   let favicon: string | undefined;
   try {
     const u = new URL(data.url);
@@ -89,6 +96,7 @@ export async function createBookmark(data: { title: string; url: string; descrip
     favicon,
   });
   revalidatePath("/", "layout");
+  return {};
 }
 
 export async function deleteBookmark(id: number) {

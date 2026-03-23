@@ -6,15 +6,23 @@ import { createBookmark } from "@/app/actions";
 export function InstantCapture() {
   const [url, setUrl] = useState("");
   const [loading, setLoading] = useState(false);
+  const [message, setMessage] = useState<{ text: string; isError: boolean } | null>(null);
 
   async function handleSubmit() {
     if (!url.trim()) return;
     setLoading(true);
+    setMessage(null);
     try {
       let title = url;
       try { title = new URL(url).hostname; } catch {}
-      await createBookmark({ title, url });
-      setUrl("");
+      const result = await createBookmark({ title, url });
+      if (result.error) {
+        setMessage({ text: result.error, isError: true });
+      } else {
+        setUrl("");
+        setMessage({ text: "Saved!", isError: false });
+        setTimeout(() => setMessage(null), 2000);
+      }
     } finally {
       setLoading(false);
     }
@@ -43,6 +51,9 @@ export function InstantCapture() {
           <span className="material-symbols-outlined text-lg">add</span>
         </button>
       </div>
+      {message && (
+        <p className={`text-xs font-bold ${message.isError ? "text-error" : "text-primary"}`}>{message.text}</p>
+      )}
     </div>
   );
 }
