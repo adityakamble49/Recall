@@ -1,11 +1,13 @@
 import { NextRequest, NextResponse } from "next/server";
-import { auth } from "@/auth";
+import { getApiUser } from "@/lib/api-auth";
 import { db } from "@/lib/db";
 import { bookmarks } from "@/lib/db/schema";
+import { eq, and } from "drizzle-orm";
+import { desc } from "drizzle-orm";
 
 export async function POST(req: NextRequest) {
-  const session = await auth();
-  if (!session?.user?.id) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  const userId = await getApiUser();
+  if (!userId) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
   const body = await req.json();
   const { title, url, collectionId } = body;
@@ -15,7 +17,7 @@ export async function POST(req: NextRequest) {
   try { favicon = `https://www.google.com/s2/favicons?domain=${new URL(url).hostname}&sz=64`; } catch {}
 
   await (db as any).insert(bookmarks).values({
-    userId: session.user.id,
+    userId,
     title,
     url,
     collectionId: collectionId ?? null,
@@ -23,4 +25,21 @@ export async function POST(req: NextRequest) {
   });
 
   return NextResponse.json({ ok: true });
+}
+
+export async function GET(req: NextRequest) {
+  const userId = await getApiUser();
+  if (!userId) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+
+  const collectionId = req.nextUrl.searchParams.get("collectionId");
+
+  const where = collectionId
+    ? and(eq(bookmarks.userId, userId), eq(bookmarks.collectionId, parseInt(collectionId)))
+    : eq(bookmarks.userId, userId);
+
+  const results = await (db as any).select().from(bookmarks)
+    .where(where)
+    .orderBy(desc(bookmarks.createdAt));
+
+  return NextResponse.json(results);
 }

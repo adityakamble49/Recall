@@ -1,5 +1,6 @@
 import { auth, signOut } from "@/auth";
 import { SignInPrompt } from "@/components/SignInPrompt";
+import { ExtensionToken } from "@/components/ExtensionToken";
 import Image from "next/image";
 
 export const dynamic = "force-dynamic";
@@ -30,7 +31,7 @@ export default async function SettingsPage() {
         </div>
       </section>
 
-      {/* Chrome Extension Promo */}
+      {/* Chrome Extension Connect */}
       <section className="relative overflow-hidden bg-primary p-6 rounded-xl text-on-primary">
         <div className="relative z-10 space-y-6">
           <div className="space-y-2">
@@ -40,15 +41,10 @@ export default async function SettingsPage() {
             </div>
             <h3 className="text-2xl font-extrabold tracking-tight leading-none">Sync your world with a click.</h3>
             <p className="text-xs opacity-90 max-w-[80%] leading-relaxed">
-              Save bookmarks directly from your desktop browser to Recall.
+              Generate a token below, then paste it in the Chrome extension to connect.
             </p>
           </div>
-          <div className="flex flex-col gap-2">
-            <button className="w-full h-12 bg-white text-primary font-bold text-sm rounded-lg flex items-center justify-center gap-2 active:scale-95 transition-transform">
-              Add to Chrome
-              <span className="material-symbols-outlined text-sm">open_in_new</span>
-            </button>
-          </div>
+          <ExtensionToken />
         </div>
       </section>
 

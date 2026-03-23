@@ -1,64 +1,169 @@
-// Configure your deployed app URL here
-const API_BASE = "https://bookmarks-tracker.vercel.app";
+// ---- CONFIG ----
+const PROD_URL = "https://recall-ebon.vercel.app";
+const DEV_URL = "http://localhost:3000";
 
 const app = document.getElementById("app");
+let API_BASE = PROD_URL;
+
+async function getConfig() {
+  const data = await chrome.storage.local.get(["token", "apiBase"]);
+  API_BASE = data.apiBase || PROD_URL;
+  return data;
+}
+
+async function apiFetch(path, options = {}) {
+  const { token } = await chrome.storage.local.get("token");
+  return fetch(`${API_BASE}${path}`, {
+    ...options,
+    headers: {
+      "Content-Type": "application/json",
+      "Authorization": `Bearer ${token}`,
+      ...(options.headers || {}),
+    },
+  });
+}
 
 async function init() {
-  // Get current tab info
-  const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
+  const { token } = await getConfig();
 
-  // Fetch collections from API
-  let collections = [];
-  try {
-    const res = await fetch(`${API_BASE}/api/collections`, { credentials: "include" });
-    if (res.status === 401) {
-      app.innerHTML = `
-        <div class="signin-prompt">
-          <p>Sign in to Recall to save bookmarks.</p>
-          <a href="${API_BASE}" target="_blank">Open Recall →</a>
-        </div>`;
-      return;
-    }
-    collections = await res.json();
-  } catch {
-    app.innerHTML = `<div class="status error">Could not connect to Recall.</div>`;
+  // Settings gear handler
+  document.getElementById("settings-toggle").onclick = showSettings;
+
+  if (!token) {
+    showSetup();
     return;
   }
 
-  // Render UI
-  const collectionsOptions = collections.map(
-    (c) => `<option value="${c.id}">${c.name}</option>`
+  try {
+    const res = await apiFetch("/api/collections");
+    if (res.status === 401) {
+      showSetup("Token expired or invalid. Please reconnect.");
+      return;
+    }
+    const collections = await res.json();
+    const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
+    showMain(tab, collections);
+  } catch {
+    showError("Could not connect to Recall. Check your API URL in settings.");
+  }
+}
+
+function showSettings() {
+  const isDev = API_BASE === DEV_URL;
+  app.innerHTML = `
+    <div class="setup">
+      <span class="material-symbols-outlined icon">settings</span>
+      <p>Configure API endpoint</p>
+      <div style="display:flex;gap:6px;margin-bottom:12px;">
+        <button class="env-btn" id="btn-prod" style="flex:1;padding:10px;border-radius:8px;font-family:inherit;font-size:11px;font-weight:700;cursor:pointer;transition:all 0.1s;
+          ${!isDev ? 'background:#4343d5;color:white;border:none;' : 'background:#f5f2fe;color:#1b1b23;border:2px solid #e4e1ed;'}">
+          PROD
+        </button>
+        <button class="env-btn" id="btn-dev" style="flex:1;padding:10px;border-radius:8px;font-family:inherit;font-size:11px;font-weight:700;cursor:pointer;transition:all 0.1s;
+          ${isDev ? 'background:#4343d5;color:white;border:none;' : 'background:#f5f2fe;color:#1b1b23;border:2px solid #e4e1ed;'}">
+          DEV
+        </button>
+      </div>
+      <input type="text" class="token-input" id="api-url-input" value="${API_BASE}" />
+      <button class="btn-primary" id="save-settings-btn">Save & Reconnect</button>
+    </div>`;
+
+  document.getElementById("btn-prod").addEventListener("click", () => {
+    document.getElementById("api-url-input").value = PROD_URL;
+  });
+  document.getElementById("btn-dev").addEventListener("click", () => {
+    document.getElementById("api-url-input").value = DEV_URL;
+  });
+  document.getElementById("save-settings-btn").addEventListener("click", async () => {
+    const url = document.getElementById("api-url-input").value.trim().replace(/\/+$/, "");
+    if (!url) return;
+    await chrome.storage.local.set({ apiBase: url });
+    API_BASE = url;
+    init();
+  });
+}
+
+function showSetup(message) {
+  app.innerHTML = `
+    <div class="setup">
+      <span class="material-symbols-outlined icon">key</span>
+      <p>${message || "Connect your Recall account.<br>Go to Settings → Chrome Extension to get your token."}</p>
+      <input type="text" class="token-input" id="token-input" placeholder="Paste your token here" />
+      <button class="btn-primary" id="connect-btn">Connect</button>
+      <br><br>
+      <a href="${API_BASE}/settings" target="_blank">Open Recall Settings →</a>
+    </div>`;
+
+  document.getElementById("connect-btn").addEventListener("click", async () => {
+    const input = document.getElementById("token-input");
+    const val = input.value.trim();
+    if (!val) return;
+
+    try {
+      const res = await fetch(`${API_BASE}/api/collections`, {
+        headers: { "Authorization": `Bearer ${val}` },
+      });
+      if (res.ok) {
+        await chrome.storage.local.set({ token: val });
+        init();
+      } else {
+        input.style.borderColor = "#ba1a1a";
+        input.placeholder = "Invalid token";
+        input.value = "";
+      }
+    } catch {
+      showError("Could not connect to Recall. Check your API URL in settings.");
+    }
+  });
+}
+
+function showError(msg) {
+  app.innerHTML = `<div class="status error">${msg}</div>`;
+}
+
+function showMain(tab, collections) {
+  const envLabel = API_BASE === DEV_URL ? "DEV" : "PROD";
+  const envColor = API_BASE === DEV_URL ? "#b65700" : "#4343d5";
+
+  const options = collections.map(
+    (c) => `<option value="${c.id}">${c.name} (${c.bookmarkCount})</option>`
   ).join("");
 
-  const collectionsList = collections.map(
-    (c) => `<div class="col-item" data-id="${c.id}">
+  const colList = collections.map(
+    (c) => `<div class="col-item">
       <span class="name">${c.name} (${c.bookmarkCount})</span>
-      <button class="open-btn" data-urls='${JSON.stringify([])}' data-name="${c.name}">Open Group</button>
+      <button class="open-btn" data-id="${c.id}" data-name="${c.name}">Open Group</button>
     </div>`
   ).join("");
 
   app.innerHTML = `
+    <div style="padding:4px 20px 0;text-align:right;">
+      <span style="font-size:9px;font-weight:800;color:${envColor};background:${envColor}15;padding:2px 6px;border-radius:4px;text-transform:uppercase;letter-spacing:0.05em;">${envLabel}</span>
+    </div>
     <div class="current-tab">
       <div class="label">Current Tab</div>
-      <div class="title">${tab.title || "Untitled"}</div>
-      <div class="url">${tab.url || ""}</div>
+      <div class="title">${escapeHtml(tab.title || "Untitled")}</div>
+      <div class="url">${escapeHtml(tab.url || "")}</div>
     </div>
     <div class="form">
       <label>Save to Collection</label>
       <select id="collection-select">
-        <option value="">General</option>
-        ${collectionsOptions}
+        <option value="">General (no collection)</option>
+        ${options}
       </select>
-      <button class="save-btn" id="save-btn">Save Bookmark</button>
+      <button class="btn-primary" id="save-btn">Save Bookmark</button>
     </div>
     <div id="status"></div>
     ${collections.length > 0 ? `
       <div class="collections">
         <div class="section-label">Open as Tab Group</div>
-        ${collectionsList}
-      </div>` : ""}`;
+        ${colList}
+      </div>` : ""}
+    <div class="disconnect">
+      <button id="disconnect-btn">Disconnect account</button>
+    </div>`;
 
-  // Save bookmark handler
+  // Save handler
   document.getElementById("save-btn").addEventListener("click", async () => {
     const btn = document.getElementById("save-btn");
     const select = document.getElementById("collection-select");
@@ -66,10 +171,8 @@ async function init() {
     btn.textContent = "Saving...";
 
     try {
-      const res = await fetch(`${API_BASE}/api/bookmarks`, {
+      const res = await apiFetch("/api/bookmarks", {
         method: "POST",
-        credentials: "include",
-        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           title: tab.title || tab.url,
           url: tab.url,
@@ -79,6 +182,7 @@ async function init() {
       if (res.ok) {
         document.getElementById("status").innerHTML = `<div class="status success">✓ Saved!</div>`;
         btn.textContent = "Saved!";
+        setTimeout(() => { btn.textContent = "Save Bookmark"; btn.disabled = false; }, 2000);
       } else {
         throw new Error();
       }
@@ -90,28 +194,36 @@ async function init() {
   });
 
   // Open as tab group handlers
-  document.querySelectorAll(".col-item").forEach((item) => {
-    const openBtn = item.querySelector(".open-btn");
-    openBtn.addEventListener("click", async (e) => {
-      e.stopPropagation();
-      const colId = item.dataset.id;
-      const name = openBtn.dataset.name;
-      // Fetch bookmarks for this collection
+  document.querySelectorAll(".open-btn").forEach((btn) => {
+    btn.addEventListener("click", async () => {
+      const colId = btn.dataset.id;
+      const name = btn.dataset.name;
+      btn.textContent = "Opening...";
       try {
-        const res = await fetch(`${API_BASE}/api/collections`, { credentials: "include" });
-        // For now, open the collection page — full tab group via background worker
-        const colRes = await fetch(`${API_BASE}/api/bookmarks?collectionId=${colId}`, { credentials: "include" });
-        if (colRes.ok) {
-          const bookmarks = await colRes.json();
-          const urls = bookmarks.map((b) => b.url);
-          chrome.runtime.sendMessage({ type: "OPEN_TAB_GROUP", urls, name });
+        const res = await apiFetch(`/api/bookmarks?collectionId=${colId}`);
+        if (res.ok) {
+          const bms = await res.json();
+          const urls = bms.map((b) => b.url);
+          if (urls.length > 0) {
+            chrome.runtime.sendMessage({ type: "OPEN_TAB_GROUP", urls, name });
+          }
         }
-      } catch {
-        // Fallback: open collection page
-        chrome.tabs.create({ url: `${API_BASE}/collections/${colId}` });
-      }
+      } catch { /* ignore */ }
+      btn.textContent = "Open Group";
     });
   });
+
+  // Disconnect handler
+  document.getElementById("disconnect-btn").addEventListener("click", async () => {
+    await chrome.storage.local.remove("token");
+    init();
+  });
+}
+
+function escapeHtml(str) {
+  const div = document.createElement("div");
+  div.textContent = str;
+  return div.innerHTML;
 }
 
 init();
