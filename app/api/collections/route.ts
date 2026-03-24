@@ -1,4 +1,4 @@
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { getApiUser } from "@/lib/api-auth";
 import { db } from "@/lib/db";
 import { collections, bookmarks } from "@/lib/db/schema";
@@ -23,4 +23,18 @@ export async function GET() {
   return NextResponse.json(
     cols.map((col: any) => ({ ...col, bookmarkCount: countMap.get(col.id) ?? 0 }))
   );
+}
+
+export async function POST(req: NextRequest) {
+  const userId = await getApiUser();
+  if (!userId) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+
+  const { name, description, icon, color } = await req.json();
+  if (!name) return NextResponse.json({ error: "name required" }, { status: 400 });
+
+  const [created] = await (db as any).insert(collections)
+    .values({ userId, name, description, icon, color })
+    .returning({ id: collections.id });
+
+  return NextResponse.json({ id: created.id });
 }

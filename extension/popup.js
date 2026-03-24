@@ -159,6 +159,7 @@ function showMain(tab, collections) {
         <div class="section-label">Open as Tab Group</div>
         ${colList}
       </div>` : ""}
+    <div id="tab-groups-section"></div>
     <div class="disconnect">
       <button id="disconnect-btn">Disconnect account</button>
     </div>`;
@@ -217,6 +218,60 @@ function showMain(tab, collections) {
     });
   });
 
+  // Load and render Chrome tab groups
+  chrome.runtime.sendMessage({ type: "GET_TAB_GROUPS" }, (tabGroups) => {
+    const section = document.getElementById("tab-groups-section");
+    if (!tabGroups || tabGroups.length === 0) return;
+
+    const groupItems = tabGroups.map((g) => `
+      <div class="col-item" style="flex-direction:column;align-items:stretch;gap:4px;">
+        <div style="display:flex;justify-content:space-between;align-items:center;">
+          <span class="name" style="display:flex;align-items:center;gap:6px;">
+            <span style="width:8px;height:8px;border-radius:50%;background:${chromeColorToHex(g.color)};display:inline-block;"></span>
+            ${escapeHtml(g.title)} (${g.tabs.length} tabs)
+          </span>
+          <button class="save-group-btn open-btn" data-group='${escapeAttr(JSON.stringify(g))}'>Save</button>
+        </div>
+      </div>
+    `).join("");
+
+    section.innerHTML = `
+      <div class="collections">
+        <div class="section-label">Save Tab Group as Collection</div>
+        ${groupItems}
+      </div>`;
+
+    section.querySelectorAll(".save-group-btn").forEach((btn) => {
+      btn.addEventListener("click", async () => {
+        const group = JSON.parse(btn.dataset.group);
+        btn.textContent = "Saving...";
+        btn.disabled = true;
+        try {
+          // Create collection
+          const colRes = await apiFetch("/api/collections", {
+            method: "POST",
+            body: JSON.stringify({ name: group.title }),
+          });
+          if (!colRes.ok) throw new Error();
+          const { id: colId } = await colRes.json();
+
+          // Save each tab as bookmark
+          for (const tab of group.tabs) {
+            if (!tab.url || tab.url.startsWith("chrome://")) continue;
+            await apiFetch("/api/bookmarks", {
+              method: "POST",
+              body: JSON.stringify({ title: tab.title || tab.url, url: tab.url, collectionId: colId }),
+            });
+          }
+          btn.textContent = "✓ Saved!";
+        } catch {
+          btn.textContent = "Failed";
+          btn.disabled = false;
+        }
+      });
+    });
+  });
+
   // Disconnect handler
   document.getElementById("disconnect-btn").addEventListener("click", async () => {
     await chrome.storage.local.remove("token");
@@ -232,6 +287,11 @@ function escapeHtml(str) {
 
 function escapeAttr(str) {
   return str.replace(/&/g, "&amp;").replace(/"/g, "&quot;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+}
+
+function chromeColorToHex(color) {
+  const map = { grey: "#5f6368", blue: "#1a73e8", red: "#d93025", yellow: "#f9ab00", green: "#188038", pink: "#d01884", purple: "#a142f4", cyan: "#007b83", orange: "#fa903e" };
+  return map[color] || "#767586";
 }
 
 init();

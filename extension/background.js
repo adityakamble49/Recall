@@ -1,8 +1,12 @@
-// Background service worker for tab group creation
+// Background service worker for tab group operations
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   if (message.type === "OPEN_TAB_GROUP") {
     openAsTabGroup(message.urls, message.name, message.color);
     sendResponse({ ok: true });
+  }
+  if (message.type === "GET_TAB_GROUPS") {
+    getTabGroups().then(sendResponse);
+    return true; // keep channel open for async response
   }
 });
 
@@ -19,7 +23,20 @@ async function openAsTabGroup(urls, name, color) {
       color: color || "blue",
       collapsed: false,
     });
-    // Activate the first tab
     chrome.tabs.update(tabIds[0], { active: true });
   }
+}
+
+async function getTabGroups() {
+  const groups = await chrome.tabGroups.query({});
+  const tabs = await chrome.tabs.query({ currentWindow: true });
+
+  return groups.map((g) => ({
+    id: g.id,
+    title: g.title || "Untitled Group",
+    color: g.color,
+    tabs: tabs
+      .filter((t) => t.groupId === g.id)
+      .map((t) => ({ title: t.title, url: t.url })),
+  }));
 }
