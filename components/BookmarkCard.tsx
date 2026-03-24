@@ -11,15 +11,17 @@ type Props = {
   bookmark: Bookmark;
   variant: "list" | "card";
   collections?: Collection[];
+  showCollection?: boolean;
 };
 
-export function BookmarkCard({ bookmark, variant, collections }: Props) {
+export function BookmarkCard({ bookmark, variant, collections, showCollection }: Props) {
   const { refresh } = useDashboard();
   const [showMenu, setShowMenu] = useState(false);
   const [showMove, setShowMove] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
   const domain = (() => { try { return new URL(bookmark.url).hostname; } catch { return bookmark.url; } })();
   const timeAgo = formatDistanceToNow(bookmark.createdAt);
+  const collectionName = showCollection ? collections?.find(c => c.id === bookmark.collectionId)?.name : null;
 
   useEffect(() => {
     if (!showMenu) return;
@@ -86,7 +88,7 @@ export function BookmarkCard({ bookmark, variant, collections }: Props) {
         </div>
         <div className="flex-1 min-w-0">
           <div className="text-sm font-medium truncate text-zinc-900 dark:text-zinc-50">{bookmark.title}</div>
-          <div className="text-xs text-zinc-400 truncate mt-0.5 font-mono">{domain} · {timeAgo}</div>
+          <div className="text-xs text-zinc-400 truncate mt-0.5 font-mono">{collectionName ? `${collectionName} · ` : ""}{timeAgo} · {domain}</div>
         </div>
       </a>
       <div className="flex items-center gap-1 shrink-0 ml-2">
