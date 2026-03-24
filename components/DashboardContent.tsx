@@ -109,6 +109,8 @@ export function DashboardContent({ collections, allBookmarks }: Props) {
   }
 
   async function handleDeleteCollection(id: number) {
+    const col = collections.find((c) => c.id === id);
+    if (!confirm(`Delete "${col?.name}"? All bookmarks in this collection will be uncategorized.`)) return;
     await deleteCollection(id);
     if (activeId === id) setActiveId(null);
     await refresh();
