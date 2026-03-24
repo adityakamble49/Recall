@@ -5,6 +5,8 @@ import { type Bookmark, type Collection } from "@/lib/db/schema";
 import {
   getAllBookmarks, getBookmarkChecksum,
   createBookmark, createCollection, deleteCollection, updateCollection,
+  restoreCollection, permanentlyDeleteCollection, getDeletedCollections,
+  getCollectionsWithCount,
 } from "@/app/actions";
 import { DashboardProvider } from "@/lib/dashboard-context";
 import { BookmarkCard } from "@/components/BookmarkCard";
@@ -12,17 +14,21 @@ import { InstantCapture } from "@/components/InstantCapture";
 import { MergeCollections } from "@/components/MergeCollections";
 import {
   FolderOpen, Bookmark as BookmarkIcon, Plus,
-  X, Trash2, Pencil,
+  X, Trash2, Pencil, Undo2, ChevronDown,
 } from "lucide-react";
 
 type Props = {
   collections: (Collection & { bookmarkCount: number })[];
   allBookmarks: Bookmark[];
+  deletedCollections: Collection[];
 };
 
-export function DashboardContent({ collections, allBookmarks }: Props) {
+export function DashboardContent({ collections: initialCollections, allBookmarks, deletedCollections: initialDeleted }: Props) {
   const [activeId, setActiveId] = useState<number | null>(null);
   const [bookmarks, setBookmarks] = useState<Bookmark[]>(allBookmarks);
+  const [collections, setCollections] = useState(initialCollections);
+  const [deletedCollections, setDeletedCollections] = useState<Collection[]>(initialDeleted);
+  const [showTrash, setShowTrash] = useState(false);
   const [showAddForm, setShowAddForm] = useState(false);
   const [showNewCollection, setShowNewCollection] = useState(false);
 
@@ -42,8 +48,12 @@ export function DashboardContent({ collections, allBookmarks }: Props) {
     : bookmarks.filter((b) => b.collectionId === activeId);
 
   const refresh = useCallback(async () => {
-    const fresh = await getAllBookmarks();
+    const [fresh, cols, deleted] = await Promise.all([
+      getAllBookmarks(), getCollectionsWithCount(), getDeletedCollections(),
+    ]);
     setBookmarks(fresh);
+    setCollections(cols);
+    setDeletedCollections(deleted);
     checksumRef.current = { count: fresh.length, latestId: fresh[0]?.id ?? 0 };
   }, []);
 
@@ -54,7 +64,7 @@ export function DashboardContent({ collections, allBookmarks }: Props) {
         const check = await getBookmarkChecksum();
         const prev = checksumRef.current;
         if (check.count !== prev.count || check.latestId !== prev.latestId) {
-          await refresh();
+          refresh();
         }
       } catch {}
     }, 30_000);
@@ -87,7 +97,7 @@ export function DashboardContent({ collections, allBookmarks }: Props) {
       setAddUrl("");
       setAddTitle("");
       setShowAddForm(false);
-      await refresh();
+      refresh();
     } finally {
       setAddLoading(false);
     }
@@ -108,17 +118,29 @@ export function DashboardContent({ collections, allBookmarks }: Props) {
 
   async function handleDeleteCollection(id: number) {
     const col = collections.find((c) => c.id === id);
-    if (!confirm(`Delete "${col?.name}"? All bookmarks in this collection will be uncategorized.`)) return;
+    if (!confirm(`Move "${col?.name}" to trash?`)) return;
     await deleteCollection(id);
     if (activeId === id) setActiveId(null);
-    await refresh();
+    refresh();
+  }
+
+  async function handleRestore(id: number) {
+    await restoreCollection(id);
+    refresh();
+  }
+
+  async function handlePermanentDelete(id: number) {
+    const col = deletedCollections.find((c) => c.id === id);
+    if (!confirm(`Permanently delete "${col?.name}"? This cannot be undone.`)) return;
+    await permanentlyDeleteCollection(id);
+    refresh();
   }
 
   async function handleRenameCollection(id: number, currentName: string) {
     const newName = prompt("Rename collection:", currentName);
     if (!newName || newName.trim() === currentName) return;
     await updateCollection(id, { name: newName.trim() });
-    await refresh();
+    refresh();
   }
 
   const activeCollection = collections.find((c) => c.id === activeId);
@@ -215,6 +237,34 @@ export function DashboardContent({ collections, allBookmarks }: Props) {
               </button>
             )}
           </div>
+
+          {deletedCollections.length > 0 && (
+            <div className="mt-6">
+              <button
+                onClick={() => setShowTrash(!showTrash)}
+                className="flex items-center gap-1.5 text-xs font-semibold font-mono uppercase tracking-wider text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-300 transition-colors"
+              >
+                <Trash2 className="w-3 h-3" />
+                Trash ({deletedCollections.length})
+                <ChevronDown className={`w-3 h-3 transition-transform ${showTrash ? "rotate-180" : ""}`} />
+              </button>
+              {showTrash && (
+                <div className="space-y-1 mt-2">
+                  {deletedCollections.map((col) => (
+                    <div key={col.id} className="flex items-center gap-2 px-3 py-2 rounded-lg border border-zinc-200 dark:border-zinc-800 bg-zinc-50 dark:bg-zinc-900 text-sm text-zinc-500">
+                      <span className="flex-1 truncate">{col.name}</span>
+                      <button onClick={() => handleRestore(col.id)} className="p-1 hover:text-zinc-900 dark:hover:text-zinc-50" title="Restore">
+                        <Undo2 className="w-3.5 h-3.5" />
+                      </button>
+                      <button onClick={() => handlePermanentDelete(col.id)} className="p-1 hover:text-red-600" title="Delete permanently">
+                        <Trash2 className="w-3.5 h-3.5" />
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
         </aside>
 
         {/* Right: Bookmarks */}

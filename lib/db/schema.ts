@@ -54,6 +54,8 @@ export const collections = pgTable("collections", {
   icon: text("icon").default("folder"),
   color: text("color").default("#4343d5"),
   isPinned: boolean("is_pinned").default(false).notNull(),
+  isDeleted: boolean("is_deleted").default(false).notNull(),
+  deletedAt: timestamp("deleted_at"),
   createdAt: timestamp("created_at").default(sql`CURRENT_TIMESTAMP`).notNull(),
 });
 

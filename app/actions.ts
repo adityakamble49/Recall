@@ -17,7 +17,7 @@ async function getSession() {
 export async function getCollections() {
   const session = await getSession();
   return (db as any).select().from(collections)
-    .where(eq(collections.userId, session.user!.id!))
+    .where(and(eq(collections.userId, session.user!.id!), eq(collections.isDeleted, false)))
     .orderBy(desc(collections.isPinned), collections.name);
 }
 
@@ -43,8 +43,29 @@ export async function createCollection(data: { name: string; description?: strin
 
 export async function deleteCollection(id: number) {
   const session = await getSession();
-  await (db as any).delete(collections).where(and(eq(collections.id, id), eq(collections.userId, session.user!.id!)));
-  revalidatePath("/", "layout");
+  await (db as any).update(collections)
+    .set({ isDeleted: true, deletedAt: new Date() })
+    .where(and(eq(collections.id, id), eq(collections.userId, session.user!.id!)));
+}
+
+export async function getDeletedCollections() {
+  const session = await getSession();
+  return (db as any).select().from(collections)
+    .where(and(eq(collections.userId, session.user!.id!), eq(collections.isDeleted, true)))
+    .orderBy(desc(collections.deletedAt));
+}
+
+export async function restoreCollection(id: number) {
+  const session = await getSession();
+  await (db as any).update(collections)
+    .set({ isDeleted: false, deletedAt: null })
+    .where(and(eq(collections.id, id), eq(collections.userId, session.user!.id!)));
+}
+
+export async function permanentlyDeleteCollection(id: number) {
+  const session = await getSession();
+  await (db as any).delete(collections)
+    .where(and(eq(collections.id, id), eq(collections.userId, session.user!.id!)));
 }
 
 // --- Bookmarks ---
