@@ -4,16 +4,15 @@ import { useState, useEffect, useRef, useCallback } from "react";
 import { type Bookmark, type Collection } from "@/lib/db/schema";
 import {
   getAllBookmarks, getBookmarkChecksum,
-  createBookmark, createCollection, deleteCollection,
+  createBookmark, createCollection, deleteCollection, updateCollection,
 } from "@/app/actions";
 import { DashboardProvider } from "@/lib/dashboard-context";
 import { BookmarkCard } from "@/components/BookmarkCard";
 import { InstantCapture } from "@/components/InstantCapture";
-import { EditableCollectionName } from "@/components/EditableCollectionName";
 import { MergeCollections } from "@/components/MergeCollections";
 import {
   FolderOpen, Bookmark as BookmarkIcon, Plus,
-  X, Trash2,
+  X, Trash2, Pencil,
 } from "lucide-react";
 
 type Props = {
@@ -115,6 +114,13 @@ export function DashboardContent({ collections, allBookmarks }: Props) {
     await refresh();
   }
 
+  async function handleRenameCollection(id: number, currentName: string) {
+    const newName = prompt("Rename collection:", currentName);
+    if (!newName || newName.trim() === currentName) return;
+    await updateCollection(id, { name: newName.trim() });
+    await refresh();
+  }
+
   const activeCollection = collections.find((c) => c.id === activeId);
 
   return (
@@ -164,13 +170,22 @@ export function DashboardContent({ collections, allBookmarks }: Props) {
                   </span>
                 </button>
                 {activeId === col.id && (
-                  <button
-                    onClick={() => handleDeleteCollection(col.id)}
-                    className="absolute right-12 top-1/2 -translate-y-1/2 p-1 text-white/60 hover:text-white dark:text-zinc-900/60 dark:hover:text-zinc-900"
-                    title="Delete collection"
-                  >
-                    <Trash2 className="w-3.5 h-3.5" />
-                  </button>
+                  <div className="absolute right-12 top-1/2 -translate-y-1/2 flex items-center gap-0.5">
+                    <button
+                      onClick={() => handleRenameCollection(col.id, col.name)}
+                      className="p-1 text-white/60 hover:text-white dark:text-zinc-900/60 dark:hover:text-zinc-900"
+                      title="Rename collection"
+                    >
+                      <Pencil className="w-3.5 h-3.5" />
+                    </button>
+                    <button
+                      onClick={() => handleDeleteCollection(col.id)}
+                      className="p-1 text-white/60 hover:text-white dark:text-zinc-900/60 dark:hover:text-zinc-900"
+                      title="Delete collection"
+                    >
+                      <Trash2 className="w-3.5 h-3.5" />
+                    </button>
+                  </div>
                 )}
               </div>
             ))}
@@ -207,7 +222,7 @@ export function DashboardContent({ collections, allBookmarks }: Props) {
           <div className="flex items-center justify-between mb-5">
             <div className="flex items-center gap-3">
               {activeCollection ? (
-                <EditableCollectionName id={activeCollection.id} name={activeCollection.name} />
+                <h2 className="text-sm font-semibold">{activeCollection.name}</h2>
               ) : (
                 <h2 className="text-xs font-semibold font-mono uppercase tracking-wider text-zinc-400">Recent</h2>
               )}
