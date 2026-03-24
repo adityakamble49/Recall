@@ -4,68 +4,92 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Recall</title>
-  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800&display=swap" rel="stylesheet" />
-  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet" />
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
-    body { font-family: 'Plus Jakarta Sans', sans-serif; width: 360px; background: #fcf8ff; color: #1b1b23; }
-    .material-symbols-outlined { font-variation-settings: 'FILL' 0, 'wght' 400; vertical-align: middle; }
+    body { font-family: 'Inter', -apple-system, sans-serif; width: 360px; background: #fafafa; color: #18181b; }
+    .mono { font-family: 'JetBrains Mono', monospace; }
 
     /* Header */
-    .header { padding: 14px 20px; display: flex; align-items: center; gap: 8px; border-bottom: 1px solid rgba(199,196,215,0.2); }
-    .header h1 { font-size: 16px; font-weight: 800; letter-spacing: -0.02em; }
-    .header .material-symbols-outlined { color: #4343d5; font-variation-settings: 'FILL' 1; }
+    .header { height: 44px; padding: 0 16px; display: flex; align-items: center; gap: 8px; border-bottom: 1px solid #e4e4e7; background: #fff; }
+    .header h1 { font-family: 'JetBrains Mono', monospace; font-size: 14px; font-weight: 700; letter-spacing: -0.02em; }
+    .header .gear { margin-left: auto; background: none; border: none; cursor: pointer; color: #a1a1aa; padding: 4px; border-radius: 4px; font-size: 0; }
+    .header .gear:hover { color: #18181b; background: #f4f4f5; }
+    .header .gear svg { width: 16px; height: 16px; }
 
     /* Current tab */
-    .current-tab { padding: 14px 20px; background: #e9e6f3; }
-    .current-tab .label { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.1em; color: #767586; margin-bottom: 4px; }
-    .current-tab .title { font-size: 13px; font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-    .current-tab .url { font-size: 10px; color: #464555; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin-top: 2px; }
+    .current-tab { padding: 12px 16px; border-bottom: 1px solid #e4e4e7; background: #fff; }
+    .current-tab .label { font-family: 'JetBrains Mono', monospace; font-size: 10px; font-weight: 500; text-transform: uppercase; letter-spacing: 0.08em; color: #a1a1aa; margin-bottom: 6px; }
+    .current-tab .title-input { width: 100%; font-size: 13px; font-weight: 600; background: transparent; border: none; border-bottom: 1px solid transparent; padding: 2px 0; font-family: inherit; color: #18181b; outline: none; }
+    .current-tab .title-input:focus { border-bottom-color: #18181b; }
+    .current-tab .url { font-family: 'JetBrains Mono', monospace; font-size: 10px; color: #71717a; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin-top: 4px; }
 
     /* Form */
-    .form { padding: 14px 20px; }
-    .form label { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.1em; color: #767586; display: block; margin-bottom: 6px; }
-    .form select { width: 100%; padding: 10px 12px; border: none; background: #e9e6f3; border-radius: 8px; font-family: inherit; font-size: 13px; color: #1b1b23; appearance: none; }
-    .form select:focus { outline: 2px solid #4343d5; }
+    .form { padding: 12px 16px; border-bottom: 1px solid #e4e4e7; }
+    .form label { font-family: 'JetBrains Mono', monospace; font-size: 10px; font-weight: 500; text-transform: uppercase; letter-spacing: 0.08em; color: #a1a1aa; display: block; margin-bottom: 6px; }
+    .form select { width: 100%; padding: 8px 10px; border: 1px solid #e4e4e7; background: #fff; border-radius: 6px; font-family: inherit; font-size: 13px; color: #18181b; appearance: none; }
+    .form select:focus { outline: none; border-color: #18181b; box-shadow: 0 0 0 1px #18181b; }
 
     /* Buttons */
-    .btn-primary { width: 100%; padding: 12px; background: linear-gradient(135deg, #4343d5, #5d5fef); color: white; border: none; border-radius: 10px; font-family: inherit; font-size: 13px; font-weight: 700; cursor: pointer; margin-top: 12px; transition: transform 0.1s; }
-    .btn-primary:active { transform: scale(0.98); }
-    .btn-primary:disabled { opacity: 0.5; cursor: default; }
+    .btn-primary { width: 100%; padding: 10px; background: #18181b; color: #fff; border: none; border-radius: 8px; font-family: inherit; font-size: 13px; font-weight: 600; cursor: pointer; margin-top: 10px; transition: background 0.15s; }
+    .btn-primary:hover { background: #27272a; }
+    .btn-primary:active { transform: scale(0.99); }
+    .btn-primary:disabled { opacity: 0.4; cursor: default; }
 
-    /* Collections */
-    .collections { padding: 0 20px 16px; }
-    .section-label { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.1em; color: #767586; margin-bottom: 8px; }
-    .col-item { display: flex; align-items: center; justify-content: space-between; padding: 10px 12px; background: #f5f2fe; border-radius: 8px; margin-bottom: 6px; }
-    .col-item:hover { background: #e9e6f3; }
-    .col-item .name { font-size: 12px; font-weight: 600; }
-    .col-item .open-btn { font-size: 10px; font-weight: 700; color: #4343d5; text-transform: uppercase; letter-spacing: 0.05em; background: none; border: none; cursor: pointer; font-family: inherit; padding: 4px 8px; border-radius: 4px; }
-    .col-item .open-btn:hover { background: rgba(67,67,213,0.1); }
+    .btn-secondary { width: 100%; padding: 10px; background: #fff; color: #18181b; border: 1px solid #e4e4e7; border-radius: 8px; font-family: inherit; font-size: 13px; font-weight: 600; cursor: pointer; margin-top: 8px; transition: all 0.15s; }
+    .btn-secondary:hover { background: #f4f4f5; border-color: #d4d4d8; }
+
+    /* Sections */
+    .section { padding: 12px 16px; }
+    .section-label { font-family: 'JetBrains Mono', monospace; font-size: 10px; font-weight: 500; text-transform: uppercase; letter-spacing: 0.08em; color: #a1a1aa; margin-bottom: 8px; }
+
+    .col-item { display: flex; align-items: center; justify-content: space-between; padding: 8px 10px; border: 1px solid #e4e4e7; background: #fff; border-radius: 6px; margin-bottom: 4px; transition: border-color 0.15s; }
+    .col-item:hover { border-color: #d4d4d8; }
+    .col-item .name { font-size: 12px; font-weight: 500; display: flex; align-items: center; gap: 6px; }
+    .col-item .count { font-family: 'JetBrains Mono', monospace; font-size: 10px; color: #a1a1aa; }
+    .col-item .action-btn { font-size: 11px; font-weight: 600; color: #18181b; background: #f4f4f5; border: none; cursor: pointer; font-family: inherit; padding: 4px 10px; border-radius: 4px; transition: background 0.15s; }
+    .col-item .action-btn:hover { background: #e4e4e7; }
+    .col-item .action-btn:disabled { opacity: 0.4; }
 
     /* Status */
-    .status { padding: 8px 20px; font-size: 12px; font-weight: 600; text-align: center; }
-    .status.success { color: #4343d5; }
-    .status.error { color: #ba1a1a; }
+    .status { padding: 6px 16px; font-size: 12px; font-weight: 500; text-align: center; }
+    .status.success { color: #18181b; }
+    .status.error { color: #dc2626; }
 
-    /* Sign in / Token setup */
-    .setup { padding: 32px 20px; text-align: center; }
-    .setup p { font-size: 12px; color: #464555; margin-bottom: 12px; line-height: 1.5; }
-    .setup .token-input { width: 100%; padding: 10px 12px; border: 2px solid #e4e1ed; border-radius: 8px; font-family: inherit; font-size: 12px; text-align: center; margin-bottom: 12px; }
-    .setup .token-input:focus { outline: none; border-color: #4343d5; }
-    .setup a { color: #4343d5; font-weight: 700; text-decoration: none; font-size: 12px; }
-    .setup .icon { font-size: 40px; color: #4343d5; margin-bottom: 12px; font-variation-settings: 'FILL' 1; }
+    /* Setup / Token */
+    .setup { padding: 40px 20px; text-align: center; }
+    .setup p { font-size: 12px; color: #71717a; margin-bottom: 16px; line-height: 1.6; }
+    .setup .token-input { width: 100%; padding: 10px 12px; border: 1px solid #e4e4e7; border-radius: 8px; font-family: 'JetBrains Mono', monospace; font-size: 12px; text-align: center; margin-bottom: 12px; background: #fff; }
+    .setup .token-input:focus { outline: none; border-color: #18181b; box-shadow: 0 0 0 1px #18181b; }
+    .setup a { color: #18181b; font-weight: 600; text-decoration: none; font-size: 12px; border-bottom: 1px solid #d4d4d8; }
+    .setup a:hover { border-color: #18181b; }
+    .setup .icon { font-size: 32px; color: #a1a1aa; margin-bottom: 16px; }
+
+    /* Env badge */
+    .env-badge { font-family: 'JetBrains Mono', monospace; font-size: 9px; font-weight: 700; padding: 2px 6px; border-radius: 3px; text-transform: uppercase; letter-spacing: 0.05em; }
+    .env-badge.prod { color: #18181b; background: #f4f4f5; }
+    .env-badge.dev { color: #b45309; background: #fef3c7; }
+
+    /* Env toggle buttons */
+    .env-btn { flex: 1; padding: 8px; border-radius: 6px; font-family: inherit; font-size: 11px; font-weight: 600; cursor: pointer; transition: all 0.15s; }
+    .env-btn.active { background: #18181b; color: #fff; border: 1px solid #18181b; }
+    .env-btn.inactive { background: #fff; color: #71717a; border: 1px solid #e4e4e7; }
+    .env-btn.inactive:hover { border-color: #d4d4d8; color: #18181b; }
 
     /* Disconnect */
-    .disconnect { padding: 0 20px 16px; text-align: center; }
-    .disconnect button { font-size: 10px; color: #767586; background: none; border: none; cursor: pointer; font-family: inherit; text-decoration: underline; }
+    .disconnect { padding: 8px 16px 16px; text-align: center; }
+    .disconnect button { font-size: 11px; color: #a1a1aa; background: none; border: none; cursor: pointer; font-family: inherit; }
+    .disconnect button:hover { color: #dc2626; }
+
+    /* Divider */
+    .divider { height: 1px; background: #e4e4e7; margin: 0; }
   </style>
 </head>
 <body>
   <div class="header">
-    <span class="material-symbols-outlined">bookmarks</span>
     <h1>Recall</h1>
-    <button id="settings-toggle" style="margin-left:auto;background:none;border:none;cursor:pointer;color:#767586;">
-      <span class="material-symbols-outlined" style="font-size:20px;">settings</span>
+    <button id="settings-toggle" class="gear">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"/><circle cx="12" cy="12" r="3"/></svg>
     </button>
   </div>
   <div id="app"></div>

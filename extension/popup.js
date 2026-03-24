@@ -25,26 +25,18 @@ async function apiFetch(path, options = {}) {
 
 async function init() {
   const { token } = await getConfig();
-
-  // Settings gear handler
   document.getElementById("settings-toggle").onclick = showSettings;
 
-  if (!token) {
-    showSetup();
-    return;
-  }
+  if (!token) { showSetup(); return; }
 
   try {
     const res = await apiFetch("/api/collections");
-    if (res.status === 401) {
-      showSetup("Token expired or invalid. Please reconnect.");
-      return;
-    }
+    if (res.status === 401) { showSetup("Token expired or invalid."); return; }
     const collections = await res.json();
     const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
     showMain(tab, collections);
   } catch {
-    showError("Could not connect to Recall. Check your API URL in settings.");
+    showError("Could not connect to Recall.");
   }
 }
 
@@ -52,17 +44,11 @@ function showSettings() {
   const isDev = API_BASE === DEV_URL;
   app.innerHTML = `
     <div class="setup">
-      <span class="material-symbols-outlined icon">settings</span>
-      <p>Configure API endpoint</p>
+      <div class="icon">⚙</div>
+      <p>API Endpoint</p>
       <div style="display:flex;gap:6px;margin-bottom:12px;">
-        <button class="env-btn" id="btn-prod" style="flex:1;padding:10px;border-radius:8px;font-family:inherit;font-size:11px;font-weight:700;cursor:pointer;transition:all 0.1s;
-          ${!isDev ? 'background:#4343d5;color:white;border:none;' : 'background:#f5f2fe;color:#1b1b23;border:2px solid #e4e1ed;'}">
-          PROD
-        </button>
-        <button class="env-btn" id="btn-dev" style="flex:1;padding:10px;border-radius:8px;font-family:inherit;font-size:11px;font-weight:700;cursor:pointer;transition:all 0.1s;
-          ${isDev ? 'background:#4343d5;color:white;border:none;' : 'background:#f5f2fe;color:#1b1b23;border:2px solid #e4e1ed;'}">
-          DEV
-        </button>
+        <button class="env-btn ${!isDev ? 'active' : 'inactive'}" id="btn-prod">PROD</button>
+        <button class="env-btn ${isDev ? 'active' : 'inactive'}" id="btn-dev">DEV</button>
       </div>
       <input type="text" class="token-input" id="api-url-input" value="${API_BASE}" />
       <button class="btn-primary" id="save-settings-btn">Save & Reconnect</button>
@@ -86,9 +72,9 @@ function showSettings() {
 function showSetup(message) {
   app.innerHTML = `
     <div class="setup">
-      <span class="material-symbols-outlined icon">key</span>
+      <div class="icon">🔑</div>
       <p>${message || "Connect your Recall account.<br>Go to Settings → Chrome Extension to get your token."}</p>
-      <input type="text" class="token-input" id="token-input" placeholder="Paste your token here" />
+      <input type="text" class="token-input" id="token-input" placeholder="Paste token here" />
       <button class="btn-primary" id="connect-btn">Connect</button>
       <br><br>
       <a href="${API_BASE}/settings" target="_blank">Open Recall Settings →</a>
@@ -98,7 +84,6 @@ function showSetup(message) {
     const input = document.getElementById("token-input");
     const val = input.value.trim();
     if (!val) return;
-
     try {
       const res = await fetch(`${API_BASE}/api/collections`, {
         headers: { "Authorization": `Bearer ${val}` },
@@ -107,23 +92,24 @@ function showSetup(message) {
         await chrome.storage.local.set({ token: val });
         init();
       } else {
-        input.style.borderColor = "#ba1a1a";
+        input.style.borderColor = "#dc2626";
         input.placeholder = "Invalid token";
         input.value = "";
       }
     } catch {
-      showError("Could not connect to Recall. Check your API URL in settings.");
+      showError("Could not connect to Recall.");
     }
   });
 }
 
 function showError(msg) {
-  app.innerHTML = `<div class="status error">${msg}</div>`;
+  app.innerHTML = `<div class="status error" style="padding:40px 20px;">${msg}</div>`;
 }
 
 function showMain(tab, collections) {
-  const envLabel = API_BASE === DEV_URL ? "DEV" : "PROD";
-  const envColor = API_BASE === DEV_URL ? "#b65700" : "#4343d5";
+  const isDev = API_BASE === DEV_URL;
+  const envClass = isDev ? "dev" : "prod";
+  const envLabel = isDev ? "DEV" : "PROD";
 
   const options = collections.map(
     (c) => `<option value="${c.id}">${c.name} (${c.bookmarkCount})</option>`
@@ -131,46 +117,45 @@ function showMain(tab, collections) {
 
   const colList = collections.map(
     (c) => `<div class="col-item">
-      <span class="name">${c.name} (${c.bookmarkCount})</span>
-      <button class="open-btn" data-id="${c.id}" data-name="${c.name}">Open Group</button>
+      <span class="name">${escapeHtml(c.name)} <span class="count">${c.bookmarkCount}</span></span>
+      <button class="action-btn" data-id="${c.id}" data-name="${escapeAttr(c.name)}">Open</button>
     </div>`
   ).join("");
 
   app.innerHTML = `
-    <div style="padding:4px 20px 0;text-align:right;">
-      <span style="font-size:9px;font-weight:800;color:${envColor};background:${envColor}15;padding:2px 6px;border-radius:4px;text-transform:uppercase;letter-spacing:0.05em;">${envLabel}</span>
+    <div style="padding:6px 16px 0;text-align:right;">
+      <span class="env-badge ${envClass}">${envLabel}</span>
     </div>
     <div class="current-tab">
       <div class="label">Current Tab</div>
-      <input type="text" id="title-input" value="${escapeAttr(tab.title || "Untitled")}" style="width:100%;font-size:13px;font-weight:700;background:transparent;border:none;border-bottom:2px solid transparent;padding:2px 0;font-family:inherit;color:#1b1b23;outline:none;" onfocus="this.style.borderBottomColor='#4343d5'" onblur="this.style.borderBottomColor='transparent'" />
+      <input type="text" class="title-input" id="title-input" value="${escapeAttr(tab.title || "Untitled")}" />
       <div class="url">${escapeHtml(tab.url || "")}</div>
     </div>
     <div class="form">
-      <label>Save to Collection</label>
+      <label>Collection</label>
       <select id="collection-select">
-        <option value="">General (no collection)</option>
+        <option value="">No collection</option>
         ${options}
       </select>
       <button class="btn-primary" id="save-btn">Save Bookmark</button>
     </div>
     <div id="status"></div>
     ${collections.length > 0 ? `
-      <div class="collections">
-        <div class="section-label">Open as Tab Group</div>
+      <div class="section">
+        <div class="section-label">Collections → Tab Groups</div>
         ${colList}
       </div>` : ""}
     <div id="tab-groups-section"></div>
     <div class="disconnect">
-      <button id="disconnect-btn">Disconnect account</button>
+      <button id="disconnect-btn">Disconnect</button>
     </div>`;
 
-  // Save handler
+  // Save
   document.getElementById("save-btn").addEventListener("click", async () => {
     const btn = document.getElementById("save-btn");
     const select = document.getElementById("collection-select");
     btn.disabled = true;
     btn.textContent = "Saving...";
-
     try {
       const res = await apiFetch("/api/bookmarks", {
         method: "POST",
@@ -181,98 +166,89 @@ function showMain(tab, collections) {
         }),
       });
       if (res.ok) {
-        document.getElementById("status").innerHTML = `<div class="status success">✓ Saved!</div>`;
+        document.getElementById("status").innerHTML = `<div class="status success">✓ Saved</div>`;
         btn.textContent = "Saved!";
         setTimeout(() => { btn.textContent = "Save Bookmark"; btn.disabled = false; }, 2000);
       } else if (res.status === 409) {
-        document.getElementById("status").innerHTML = `<div class="status error">Already saved in this collection.</div>`;
+        document.getElementById("status").innerHTML = `<div class="status error">Already saved in this collection</div>`;
         btn.disabled = false;
         btn.textContent = "Save Bookmark";
-      } else {
-        throw new Error();
-      }
+      } else { throw new Error(); }
     } catch {
-      document.getElementById("status").innerHTML = `<div class="status error">Failed to save.</div>`;
+      document.getElementById("status").innerHTML = `<div class="status error">Failed to save</div>`;
       btn.disabled = false;
       btn.textContent = "Save Bookmark";
     }
   });
 
-  // Open as tab group handlers
-  document.querySelectorAll(".open-btn").forEach((btn) => {
+  // Open as tab group
+  document.querySelectorAll(".action-btn").forEach((btn) => {
     btn.addEventListener("click", async () => {
       const colId = btn.dataset.id;
       const name = btn.dataset.name;
-      btn.textContent = "Opening...";
+      btn.textContent = "...";
       try {
         const res = await apiFetch(`/api/bookmarks?collectionId=${colId}`);
         if (res.ok) {
           const bms = await res.json();
           const urls = bms.map((b) => b.url);
-          if (urls.length > 0) {
-            chrome.runtime.sendMessage({ type: "OPEN_TAB_GROUP", urls, name });
-          }
+          if (urls.length > 0) chrome.runtime.sendMessage({ type: "OPEN_TAB_GROUP", urls, name });
         }
-      } catch { /* ignore */ }
-      btn.textContent = "Open Group";
+      } catch {}
+      btn.textContent = "Open";
     });
   });
 
-  // Load and render Chrome tab groups
+  // Chrome tab groups
   chrome.runtime.sendMessage({ type: "GET_TAB_GROUPS" }, (tabGroups) => {
     const section = document.getElementById("tab-groups-section");
     if (!tabGroups || tabGroups.length === 0) return;
 
-    const groupItems = tabGroups.map((g) => `
-      <div class="col-item" style="flex-direction:column;align-items:stretch;gap:4px;">
-        <div style="display:flex;justify-content:space-between;align-items:center;">
-          <span class="name" style="display:flex;align-items:center;gap:6px;">
-            <span style="width:8px;height:8px;border-radius:50%;background:${chromeColorToHex(g.color)};display:inline-block;"></span>
-            ${escapeHtml(g.title)} (${g.tabs.length} tabs)
-          </span>
-          <button class="save-group-btn open-btn" data-group='${escapeAttr(JSON.stringify(g))}'>Save</button>
-        </div>
+    const items = tabGroups.map((g) => `
+      <div class="col-item">
+        <span class="name">
+          <span style="width:8px;height:8px;border-radius:50%;background:${chromeColorToHex(g.color)};display:inline-block;"></span>
+          ${escapeHtml(g.title)} <span class="count">${g.tabs.length}</span>
+        </span>
+        <button class="action-btn save-group-btn" data-group='${escapeAttr(JSON.stringify(g))}'>Save</button>
       </div>
     `).join("");
 
     section.innerHTML = `
-      <div class="collections">
-        <div class="section-label">Save Tab Group as Collection</div>
-        ${groupItems}
+      <div class="section">
+        <div class="section-label">Save Tab Groups</div>
+        ${items}
       </div>`;
 
     section.querySelectorAll(".save-group-btn").forEach((btn) => {
       btn.addEventListener("click", async () => {
         const group = JSON.parse(btn.dataset.group);
-        btn.textContent = "Saving...";
+        btn.textContent = "...";
         btn.disabled = true;
         try {
-          // Create collection
           const colRes = await apiFetch("/api/collections", {
             method: "POST",
             body: JSON.stringify({ name: group.title }),
           });
           if (!colRes.ok) throw new Error();
           const { id: colId } = await colRes.json();
-
-          // Save each tab as bookmark
-          for (const tab of group.tabs) {
-            if (!tab.url || tab.url.startsWith("chrome://")) continue;
+          for (const t of group.tabs) {
+            if (!t.url || t.url.startsWith("chrome://")) continue;
             await apiFetch("/api/bookmarks", {
               method: "POST",
-              body: JSON.stringify({ title: tab.title || tab.url, url: tab.url, collectionId: colId }),
+              body: JSON.stringify({ title: t.title || t.url, url: t.url, collectionId: colId }),
             });
           }
-          btn.textContent = "✓ Saved!";
+          btn.textContent = "✓";
         } catch {
-          btn.textContent = "Failed";
+          btn.textContent = "Fail";
           btn.disabled = false;
         }
       });
     });
   });
 
-  // Disconnect handler
+  // Disconnect
   document.getElementById("disconnect-btn").addEventListener("click", async () => {
     await chrome.storage.local.remove("token");
     init();
@@ -280,9 +256,9 @@ function showMain(tab, collections) {
 }
 
 function escapeHtml(str) {
-  const div = document.createElement("div");
-  div.textContent = str;
-  return div.innerHTML;
+  const d = document.createElement("div");
+  d.textContent = str;
+  return d.innerHTML;
 }
 
 function escapeAttr(str) {
@@ -290,8 +266,8 @@ function escapeAttr(str) {
 }
 
 function chromeColorToHex(color) {
-  const map = { grey: "#5f6368", blue: "#1a73e8", red: "#d93025", yellow: "#f9ab00", green: "#188038", pink: "#d01884", purple: "#a142f4", cyan: "#007b83", orange: "#fa903e" };
-  return map[color] || "#767586";
+  const m = { grey:"#71717a", blue:"#2563eb", red:"#dc2626", yellow:"#ca8a04", green:"#16a34a", pink:"#db2777", purple:"#9333ea", cyan:"#0891b2", orange:"#ea580c" };
+  return m[color] || "#a1a1aa";
 }
 
 init();
