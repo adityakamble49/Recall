@@ -18,22 +18,26 @@ Recall solves the problem of scattered bookmarks across browsers and devices. In
 
 ### Key Features
 
-- **Collections** — Organize bookmarks into named, colored collections
-- **Chrome Tab Groups** — Open all bookmarks in a collection as a Chrome tab group instantly
-- **Chrome Extension** — Save the current tab to any collection with one click
+- **Collections** — Organize bookmarks into named collections, rename, merge, and delete
+- **Chrome Tab Groups** — Open all bookmarks in a collection as a Chrome tab group via the extension
+- **Chrome Extension** — Save the current tab, edit title before saving, save tab groups as collections
 - **Instant Capture** — Quick URL paste on the dashboard for rapid bookmarking
-- **Responsive Design** — Desktop sidebar layout + mobile-first with floating bottom nav
-- **Zenith Flat Design System** — Clean, clinical UI with tonal surface layering (no borders, no heavy shadows)
+- **Move & Organize** — Move bookmarks between collections, favorite, and delete
+- **Duplicate Detection** — Prevents saving the same URL twice in a collection
+- **Live Reload** — Dashboard auto-refreshes when bookmarks change from another session
+- **Dev/Prod Toggle** — Extension supports switching between local and production environments
+- **Responsive** — Single-page dashboard works on desktop and mobile
 
 ### Tech Stack
 
 | Layer | Technology |
 |-------|-----------|
 | Framework | Next.js 16 (App Router, Server Actions) |
-| UI | React 19, Tailwind CSS v4, Plus Jakarta Sans |
+| UI | React 19, Tailwind CSS v4, Inter + JetBrains Mono |
 | Database | Neon PostgreSQL (serverless) |
 | ORM | Drizzle ORM |
 | Auth | NextAuth v5 (Google OAuth) |
+| Icons | Lucide React |
 | Hosting | Vercel |
 | Extension | Chrome Manifest V3 |
 
@@ -91,7 +95,7 @@ npx drizzle-kit push
 npm run dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000).
+Open [http://localhost:3030](http://localhost:3030).
 
 ---
 
@@ -118,54 +122,8 @@ The Chrome extension lets you save the current tab to any collection and open co
 The extension has a built-in environment switcher:
 
 - Click the ⚙️ gear icon in the extension header
-- Toggle between **DEV** (`localhost:3000`) and **PROD** (Vercel URL)
+- Toggle between **DEV** (`localhost:3030`) and **PROD** (Vercel URL)
 - Each environment can have its own token
-
----
-
-## Project Structure
-
-```
-├── app/
-│   ├── page.tsx                 # Dashboard (home)
-│   ├── layout.tsx               # Root layout with TopBar, Sidebar, BottomNav
-│   ├── actions.ts               # Server actions (CRUD for collections & bookmarks)
-│   ├── add/page.tsx             # Add bookmark page/modal
-│   ├── collections/
-│   │   ├── page.tsx             # All collections grid
-│   │   └── [id]/page.tsx        # Collection detail with bookmark list
-│   ├── settings/page.tsx        # Account, extension token, preferences
-│   └── api/
-│       ├── auth/[...nextauth]/  # NextAuth route handler
-│       ├── bookmarks/route.ts   # GET/POST bookmarks (supports bearer token)
-│       ├── collections/route.ts # GET collections (supports bearer token)
-│       └── token/route.ts       # GET/POST extension API tokens
-├── components/
-│   ├── TopBar.tsx               # Glassmorphic header (desktop nav + mobile search)
-│   ├── Sidebar.tsx              # Desktop sidebar with Library nav
-│   ├── BottomNav.tsx            # Mobile floating bottom nav
-│   ├── BookmarkCard.tsx         # List (mobile) + card (desktop) variants
-│   ├── CollectionCard.tsx       # Bento grid variants (featured/medium/small)
-│   ├── AddBookmarkForm.tsx      # Bookmark + collection creation form
-│   ├── InstantCapture.tsx       # Quick URL paste widget
-│   ├── OpenTabGroupButton.tsx   # Opens all URLs in new tabs
-│   ├── ExtensionToken.tsx       # Token generate/copy/regenerate widget
-│   └── SignInPrompt.tsx         # Unauthenticated state
-├── lib/
-│   ├── db/
-│   │   ├── schema.ts            # Drizzle schema (auth + collections + bookmarks + api_tokens)
-│   │   └── index.ts             # Neon DB connection
-│   ├── api-auth.ts              # Auth helper (session cookie OR bearer token)
-│   └── utils.ts                 # formatDistanceToNow helper
-├── extension/
-│   ├── manifest.json            # Chrome Manifest V3
-│   ├── popup.html               # Extension popup UI
-│   ├── popup.js                 # Popup logic (token auth, save, tab groups, dev/prod toggle)
-│   └── background.js            # Service worker for chrome.tabs.group() API
-├── middleware.ts                 # CORS headers for /api/* routes
-├── drizzle.config.ts            # Drizzle Kit config
-└── .env.example                 # Environment variable template
-```
 
 ---
 
@@ -210,21 +168,6 @@ DATABASE_URL="your_prod_url" npx drizzle-kit push
 | `AUTH_SECRET` | NextAuth session encryption secret |
 | `AUTH_GOOGLE_ID` | Google OAuth client ID |
 | `AUTH_GOOGLE_SECRET` | Google OAuth client secret |
-
----
-
-## Design System
-
-Recall uses the **Zenith Flat** design system — a "flat-plus" philosophy inspired by precision instruments.
-
-- **Font**: Plus Jakarta Sans
-- **Primary**: `#4343d5` (Electric Indigo)
-- **Surface hierarchy**: Tonal steps instead of shadows (`surface-container-low` → `highest`)
-- **No borders for sectioning** — background shifts only
-- **Glassmorphism** for floating nav bars (80% opacity + backdrop blur)
-- **Icons**: Material Symbols Outlined
-
-See [`design/stitch_add_bookmark/zenith_flat/DESIGN.md`](design/stitch_add_bookmark/zenith_flat/DESIGN.md) for the full specification.
 
 ---
 
