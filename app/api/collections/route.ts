@@ -2,14 +2,14 @@ import { NextRequest, NextResponse } from "next/server";
 import { getApiUser } from "@/lib/api-auth";
 import { db } from "@/lib/db";
 import { collections, bookmarks } from "@/lib/db/schema";
-import { eq, count } from "drizzle-orm";
+import { eq, count, and } from "drizzle-orm";
 
 export async function GET() {
   const userId = await getApiUser();
   if (!userId) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
   const cols = await (db as any).select().from(collections)
-    .where(eq(collections.userId, userId));
+    .where(and(eq(collections.userId, userId), eq(collections.isDeleted, false)));
 
   const counts = await (db as any).select({
     collectionId: bookmarks.collectionId,
@@ -31,6 +31,12 @@ export async function POST(req: NextRequest) {
 
   const { name, description, icon, color } = await req.json();
   if (!name) return NextResponse.json({ error: "name required" }, { status: 400 });
+
+  // Duplicate name check
+  const [existing] = await (db as any).select({ id: collections.id }).from(collections)
+    .where(and(eq(collections.userId, userId), eq(collections.name, name), eq(collections.isDeleted, false)))
+    .limit(1);
+  if (existing) return NextResponse.json({ error: "Collection already exists" }, { status: 409 });
 
   const [created] = await (db as any).insert(collections)
     .values({ userId, name, description, icon, color })
