@@ -20,7 +20,7 @@ Recall solves the problem of scattered bookmarks across browsers and devices. In
 
 <table border="0" cellspacing="0" cellpadding="0">
 <tr>
-<td valign="top">
+<td valign="top" width="50%">
 
 | Feature | Description |
 |---------|-------------|
@@ -35,9 +35,9 @@ Recall solves the problem of scattered bookmarks across browsers and devices. In
 | **Responsive** | Single-page dashboard works on desktop and mobile |
 
 </td>
-<td>
+<td width="50%" align="center" valign="top">
 
-<img src="assets/screenshot-chrome-extension.png" width="360" />
+<img src="assets/screenshot-chrome-extension.png" width="100%" />
 
 </td>
 </tr>
