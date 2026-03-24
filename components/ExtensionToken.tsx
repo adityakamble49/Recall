@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { Copy, Check, RefreshCw } from "lucide-react";
 
 export function ExtensionToken() {
   const [token, setToken] = useState<string | null>(null);
@@ -29,35 +30,33 @@ export function ExtensionToken() {
     setTimeout(() => setCopied(false), 2000);
   }
 
-  return (
-    <div className="flex flex-col gap-3">
-      {token ? (
-        <>
-          <div className="flex items-center gap-2 bg-white/10 rounded-lg px-3 py-2">
-            <code className="text-xs flex-1 truncate opacity-90">{token}</code>
-            <button onClick={copy} className="text-white/80 hover:text-white shrink-0">
-              <span className="material-symbols-outlined text-sm">
-                {copied ? "check" : "content_copy"}
-              </span>
-            </button>
-          </div>
-          <button
-            onClick={generate}
-            disabled={loading}
-            className="w-full h-10 bg-white/10 text-white font-bold text-xs rounded-lg flex items-center justify-center gap-2 active:scale-95 transition-transform border border-white/20 disabled:opacity-50"
-          >
-            Regenerate Token
+  if (token) {
+    return (
+      <div className="space-y-2">
+        <div className="flex items-center gap-2 px-3 py-2 bg-zinc-50 dark:bg-zinc-900 rounded-lg border border-zinc-200 dark:border-zinc-800">
+          <code className="text-xs font-mono flex-1 truncate text-zinc-600 dark:text-zinc-400">{token}</code>
+          <button onClick={copy} className="p-1 text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-50 shrink-0">
+            {copied ? <Check className="w-3.5 h-3.5" /> : <Copy className="w-3.5 h-3.5" />}
           </button>
-        </>
-      ) : (
+        </div>
         <button
           onClick={generate}
           disabled={loading}
-          className="w-full h-12 bg-white text-primary font-bold text-sm rounded-lg flex items-center justify-center gap-2 active:scale-95 transition-transform disabled:opacity-50"
+          className="flex items-center gap-1.5 text-xs text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-50 disabled:opacity-50"
         >
-          {loading ? "Generating..." : "Generate Extension Token"}
+          <RefreshCw className={`w-3 h-3 ${loading ? "animate-spin" : ""}`} /> Regenerate
         </button>
-      )}
-    </div>
+      </div>
+    );
+  }
+
+  return (
+    <button
+      onClick={generate}
+      disabled={loading}
+      className="px-4 py-2 bg-zinc-900 dark:bg-zinc-50 text-white dark:text-zinc-900 text-sm font-medium rounded-lg disabled:opacity-50"
+    >
+      {loading ? "Generating..." : "Generate Token"}
+    </button>
   );
 }

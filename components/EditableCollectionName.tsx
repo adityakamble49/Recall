@@ -22,18 +22,18 @@ export function EditableCollectionName({ id, name }: { id: number; name: string 
         onChange={(e) => setValue(e.target.value)}
         onBlur={handleSave}
         onKeyDown={(e) => { if (e.key === "Enter") handleSave(); if (e.key === "Escape") { setValue(name); setEditing(false); } }}
-        className="text-4xl md:text-[3.5rem] font-extrabold tracking-tighter text-on-surface leading-none bg-transparent border-b-2 border-primary outline-none w-full"
+        className="text-sm font-semibold bg-transparent border-b-2 border-zinc-900 dark:border-zinc-50 outline-none"
       />
     );
   }
 
   return (
-    <h1
+    <h2
       onClick={() => setEditing(true)}
-      className="text-4xl md:text-[3.5rem] font-extrabold tracking-tighter text-on-surface leading-none cursor-pointer hover:text-primary/80 transition-colors"
+      className="text-sm font-semibold cursor-pointer hover:text-zinc-500 transition-colors"
       title="Click to rename"
     >
       {value}
-    </h1>
+    </h2>
   );
 }

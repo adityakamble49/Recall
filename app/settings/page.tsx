@@ -2,6 +2,7 @@ import { auth, signOut } from "@/auth";
 import { SignInPrompt } from "@/components/SignInPrompt";
 import { ExtensionToken } from "@/components/ExtensionToken";
 import Image from "next/image";
+import { LogOut, Puzzle, User } from "lucide-react";
 
 export const dynamic = "force-dynamic";
 
@@ -10,80 +11,47 @@ export default async function SettingsPage() {
   if (!session?.user) return <SignInPrompt />;
 
   return (
-    <div className="max-w-md mx-auto px-6 py-8 space-y-10">
+    <div className="max-w-lg mx-auto px-6 md:px-10 py-10 md:py-16 space-y-10">
+      <h1 className="text-3xl font-bold tracking-tight">Settings</h1>
+
       {/* Account */}
-      <section className="space-y-4">
-        <h2 className="text-[10px] font-bold tracking-widest uppercase text-on-surface-variant/50">Account Details</h2>
-        <div className="bg-surface-container-low p-5 rounded-xl flex items-center gap-4">
-          <div className="relative">
-            {session.user.image ? (
-              <Image src={session.user.image} alt="Avatar" width={64} height={64} className="w-16 h-16 rounded-xl object-cover" />
-            ) : (
-              <div className="w-16 h-16 rounded-xl bg-primary-container flex items-center justify-center text-on-primary text-xl font-bold">
-                {session.user.name?.[0] ?? "?"}
-              </div>
-            )}
-          </div>
-          <div className="flex-1">
-            <p className="font-bold text-lg text-on-surface">{session.user.name}</p>
-            <p className="text-xs text-on-surface-variant">{session.user.email}</p>
+      <section className="space-y-3">
+        <h2 className="text-xs font-semibold font-mono uppercase tracking-wider text-zinc-400">Account</h2>
+        <div className="flex items-center gap-4 p-4 border border-zinc-200 dark:border-zinc-800 rounded-xl bg-white dark:bg-zinc-950">
+          {session.user.image ? (
+            <Image src={session.user.image} alt="" width={48} height={48} className="w-12 h-12 rounded-full" />
+          ) : (
+            <div className="w-12 h-12 rounded-full bg-zinc-100 dark:bg-zinc-900 flex items-center justify-center">
+              <User className="w-5 h-5 text-zinc-400" />
+            </div>
+          )}
+          <div className="flex-1 min-w-0">
+            <p className="text-sm font-medium truncate">{session.user.name}</p>
+            <p className="text-xs text-zinc-400 font-mono truncate">{session.user.email}</p>
           </div>
         </div>
       </section>
 
-      {/* Chrome Extension Connect */}
-      <section className="relative overflow-hidden bg-primary p-6 rounded-xl text-on-primary">
-        <div className="relative z-10 space-y-6">
-          <div className="space-y-2">
-            <div className="flex items-center gap-2">
-              <span className="material-symbols-outlined text-sm" style={{ fontVariationSettings: "'FILL' 1" }}>extension</span>
-              <span className="text-[10px] font-bold tracking-widest uppercase opacity-80">Chrome Extension</span>
+      {/* Chrome Extension */}
+      <section className="space-y-3">
+        <h2 className="text-xs font-semibold font-mono uppercase tracking-wider text-zinc-400">Chrome Extension</h2>
+        <div className="p-5 border border-zinc-200 dark:border-zinc-800 rounded-xl bg-white dark:bg-zinc-950 space-y-4">
+          <div className="flex items-start gap-3">
+            <Puzzle className="w-5 h-5 text-zinc-400 mt-0.5" />
+            <div>
+              <p className="text-sm font-medium">Connect Extension</p>
+              <p className="text-xs text-zinc-400 mt-0.5">Generate a token and paste it in the Chrome extension.</p>
             </div>
-            <h3 className="text-2xl font-extrabold tracking-tight leading-none">Sync your world with a click.</h3>
-            <p className="text-xs opacity-90 max-w-[80%] leading-relaxed">
-              Generate a token below, then paste it in the Chrome extension to connect.
-            </p>
           </div>
           <ExtensionToken />
         </div>
       </section>
 
-      {/* Preferences */}
-      <section className="space-y-4">
-        <h2 className="text-[10px] font-bold tracking-widest uppercase text-on-surface-variant/50">Preferences</h2>
-        <div className="bg-surface-container-low rounded-xl overflow-hidden">
-          <div className="flex items-center justify-between p-4 border-b border-surface-container">
-            <div className="flex items-center gap-3">
-              <span className="material-symbols-outlined text-on-surface-variant">notifications</span>
-              <span className="text-sm font-medium">Notifications</span>
-            </div>
-            <div className="w-10 h-6 bg-primary rounded-full relative flex items-center px-1">
-              <div className="w-4 h-4 bg-white rounded-full ml-auto" />
-            </div>
-          </div>
-          <div className="flex items-center justify-between p-4 border-b border-surface-container">
-            <div className="flex items-center gap-3">
-              <span className="material-symbols-outlined text-on-surface-variant">lock</span>
-              <span className="text-sm font-medium">Privacy &amp; Security</span>
-            </div>
-            <span className="material-symbols-outlined text-on-surface-variant/40">chevron_right</span>
-          </div>
-          <div className="flex items-center justify-between p-4">
-            <div className="flex items-center gap-3">
-              <span className="material-symbols-outlined text-on-surface-variant">database</span>
-              <span className="text-sm font-medium">Data Export</span>
-            </div>
-            <span className="material-symbols-outlined text-on-surface-variant/40">chevron_right</span>
-          </div>
-        </div>
-      </section>
-
       {/* Sign Out */}
-      <section className="pt-4">
+      <section>
         <form action={async () => { "use server"; await signOut(); }}>
-          <button type="submit" className="w-full flex items-center justify-center gap-2 p-4 rounded-xl border border-error/20 text-error font-bold text-sm hover:bg-error/5 transition-colors">
-            <span className="material-symbols-outlined text-sm">logout</span>
-            Sign Out
+          <button type="submit" className="flex items-center gap-2 px-4 py-2.5 text-sm font-medium text-red-600 border border-red-200 dark:border-red-900/30 rounded-lg hover:bg-red-50 dark:hover:bg-red-950/20 transition-colors">
+            <LogOut className="w-4 h-4" /> Sign out
           </button>
         </form>
       </section>

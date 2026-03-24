@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { createBookmark } from "@/app/actions";
+import { Plus } from "lucide-react";
 
 export function InstantCapture() {
   const [url, setUrl] = useState("");
@@ -29,30 +30,24 @@ export function InstantCapture() {
   }
 
   return (
-    <div className="bg-surface-container-high rounded-xl p-4 flex flex-col gap-3 border border-outline-variant/20">
-      <div className="flex items-center gap-2">
-        <span className="material-symbols-outlined text-primary text-sm" style={{ fontVariationSettings: "'FILL' 1" }}>bolt</span>
-        <span className="text-[10px] font-bold tracking-widest uppercase text-on-surface-variant">Instant Capture</span>
-      </div>
-      <div className="relative flex items-center">
-        <input
-          type="text"
-          value={url}
-          onChange={(e) => setUrl(e.target.value)}
-          onKeyDown={(e) => e.key === "Enter" && handleSubmit()}
-          placeholder="Paste URL here..."
-          className="w-full bg-surface-container-highest border-none rounded-lg py-3 px-4 text-sm placeholder:text-outline/60 focus:ring-0 focus:border-b-2 focus:border-primary transition-all"
-        />
-        <button
-          onClick={handleSubmit}
-          disabled={loading}
-          className="absolute right-2 bg-primary text-white w-8 h-8 rounded-md flex items-center justify-center active:scale-90 transition-transform disabled:opacity-50"
-        >
-          <span className="material-symbols-outlined text-lg">add</span>
-        </button>
-      </div>
+    <div className="relative">
+      <input
+        type="text"
+        value={url}
+        onChange={(e) => setUrl(e.target.value)}
+        onKeyDown={(e) => e.key === "Enter" && handleSubmit()}
+        placeholder="Paste a URL to save..."
+        className="w-full h-10 px-3 pr-10 text-sm border border-zinc-200 dark:border-zinc-800 rounded-lg bg-white dark:bg-zinc-950 focus:outline-none focus:ring-2 focus:ring-zinc-900 dark:focus:ring-zinc-50 placeholder:text-zinc-400"
+      />
+      <button
+        onClick={handleSubmit}
+        disabled={loading}
+        className="absolute right-1.5 top-1.5 p-1.5 rounded bg-zinc-900 dark:bg-zinc-50 text-white dark:text-zinc-900 disabled:opacity-50"
+      >
+        <Plus className="w-3.5 h-3.5" />
+      </button>
       {message && (
-        <p className={`text-xs font-bold ${message.isError ? "text-error" : "text-primary"}`}>{message.text}</p>
+        <p className={`text-xs mt-1.5 font-medium ${message.isError ? "text-red-600" : "text-zinc-500"}`}>{message.text}</p>
       )}
     </div>
   );

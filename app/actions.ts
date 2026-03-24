@@ -49,6 +49,13 @@ export async function deleteCollection(id: number) {
 
 // --- Bookmarks ---
 
+export async function getAllBookmarks() {
+  const session = await getSession();
+  return (db as any).select().from(bookmarks)
+    .where(eq(bookmarks.userId, session.user!.id!))
+    .orderBy(desc(bookmarks.createdAt));
+}
+
 export async function getRecentBookmarks(limit = 8) {
   const session = await getSession();
   return (db as any).select().from(bookmarks)
@@ -118,6 +125,18 @@ export async function getTotalBookmarkCount() {
   const [result] = await (db as any).select({ count: count() }).from(bookmarks)
     .where(eq(bookmarks.userId, session.user!.id!));
   return Number(result?.count ?? 0);
+}
+
+export async function getBookmarkChecksum() {
+  const session = await getSession();
+  const userId = session.user!.id!;
+  const [countResult] = await (db as any).select({ count: count() }).from(bookmarks)
+    .where(eq(bookmarks.userId, userId));
+  const [latest] = await (db as any).select({ id: bookmarks.id }).from(bookmarks)
+    .where(eq(bookmarks.userId, userId))
+    .orderBy(desc(bookmarks.id))
+    .limit(1);
+  return { count: Number(countResult?.count ?? 0), latestId: Number(latest?.id ?? 0) };
 }
 
 export async function moveBookmark(bookmarkId: number, targetCollectionId: number | null) {
