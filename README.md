@@ -18,21 +18,21 @@ Recall is a minimalistic bookmark tracker with a web app and Chrome extension. S
 
 Recall solves the problem of scattered bookmarks across browsers and devices. Instead of a flat list, bookmarks are organized into **collections** that can be opened as **Chrome tab groups** with one click.
 
-<table>
+<table border="0" cellspacing="0" cellpadding="0">
 <tr>
-<td>
+<td valign="top">
 
-### Key Features
-
-- **Collections** — Organize bookmarks into named collections, rename, merge, and delete
-- **Chrome Tab Groups** — Open all bookmarks in a collection as a Chrome tab group via the extension
-- **Chrome Extension** — Save the current tab, edit title before saving, save tab groups as collections
-- **Instant Capture** — Quick URL paste on the dashboard for rapid bookmarking
-- **Move & Organize** — Move bookmarks between collections, favorite, and delete
-- **Duplicate Detection** — Prevents saving the same URL twice in a collection
-- **Live Reload** — Dashboard auto-refreshes when bookmarks change from another session
-- **Dev/Prod Toggle** — Extension supports switching between local and production environments
-- **Responsive** — Single-page dashboard works on desktop and mobile
+| Feature | Description |
+|---------|-------------|
+| **Collections** | Organize bookmarks into named collections, rename, merge, and delete |
+| **Chrome Tab Groups** | Open all bookmarks in a collection as a Chrome tab group via the extension |
+| **Chrome Extension** | Save the current tab, edit title before saving, save tab groups as collections |
+| **Instant Capture** | Quick URL paste on the dashboard for rapid bookmarking |
+| **Move & Organize** | Move bookmarks between collections, favorite, and delete |
+| **Duplicate Detection** | Prevents saving the same URL twice in a collection |
+| **Live Reload** | Dashboard auto-refreshes when bookmarks change from another session |
+| **Dev/Prod Toggle** | Extension supports switching between local and production environments |
+| **Responsive** | Single-page dashboard works on desktop and mobile |
 
 </td>
 <td>
