@@ -180,7 +180,7 @@ export function DashboardContent({ collections, allBookmarks }: Props) {
                 value={newColName}
                 onChange={(e) => setNewColName(e.target.value)}
                 placeholder="Collection name"
-                className="flex-1 px-3 py-2 text-sm border border-zinc-200 dark:border-zinc-800 rounded-lg bg-white dark:bg-zinc-950 focus:outline-none focus:ring-2 focus:ring-zinc-900 dark:focus:ring-zinc-50"
+                className="flex-1 px-3 py-2 text-base md:text-sm border border-zinc-200 dark:border-zinc-800 rounded-lg bg-white dark:bg-zinc-950 focus:outline-none focus:ring-2 focus:ring-zinc-900 dark:focus:ring-zinc-50"
               />
               <button type="submit" disabled={newColLoading} className="px-3 py-2 bg-zinc-900 dark:bg-zinc-50 text-white dark:text-zinc-900 rounded-lg text-sm font-medium disabled:opacity-50">
                 Add
@@ -238,7 +238,7 @@ export function DashboardContent({ collections, allBookmarks }: Props) {
                 onChange={(e) => setAddUrl(e.target.value)}
                 placeholder="URL"
                 required
-                className="px-3 py-2 text-sm border border-zinc-200 dark:border-zinc-800 rounded-lg bg-zinc-50 dark:bg-zinc-900 focus:outline-none focus:ring-2 focus:ring-zinc-900 dark:focus:ring-zinc-50 font-mono"
+                className="px-3 py-2 text-base md:text-sm border border-zinc-200 dark:border-zinc-800 rounded-lg bg-zinc-50 dark:bg-zinc-900 focus:outline-none focus:ring-2 focus:ring-zinc-900 dark:focus:ring-zinc-50 font-mono"
               />
               <input
                 type="text"
@@ -246,14 +246,14 @@ export function DashboardContent({ collections, allBookmarks }: Props) {
                 onChange={(e) => setAddTitle(e.target.value)}
                 placeholder="Title"
                 required
-                className="px-3 py-2 text-sm border border-zinc-200 dark:border-zinc-800 rounded-lg bg-zinc-50 dark:bg-zinc-900 focus:outline-none focus:ring-2 focus:ring-zinc-900 dark:focus:ring-zinc-50"
+                className="px-3 py-2 text-base md:text-sm border border-zinc-200 dark:border-zinc-800 rounded-lg bg-zinc-50 dark:bg-zinc-900 focus:outline-none focus:ring-2 focus:ring-zinc-900 dark:focus:ring-zinc-50"
               />
             </div>
             <div className="flex items-center gap-3">
               <select
                 value={addCollection ?? activeId ?? ""}
                 onChange={(e) => setAddCollection(e.target.value ? parseInt(e.target.value) : undefined)}
-                className="flex-1 px-3 py-2 text-sm border border-zinc-200 dark:border-zinc-800 rounded-lg bg-zinc-50 dark:bg-zinc-900 focus:outline-none focus:ring-2 focus:ring-zinc-900 dark:focus:ring-zinc-50"
+                className="flex-1 px-3 py-2 text-base md:text-sm border border-zinc-200 dark:border-zinc-800 rounded-lg bg-zinc-50 dark:bg-zinc-900 focus:outline-none focus:ring-2 focus:ring-zinc-900 dark:focus:ring-zinc-50"
               >
                 <option value="">No collection</option>
                 {collections.map((c) => (

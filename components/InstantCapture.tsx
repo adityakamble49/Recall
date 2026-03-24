@@ -37,7 +37,7 @@ export function InstantCapture() {
         onChange={(e) => setUrl(e.target.value)}
         onKeyDown={(e) => e.key === "Enter" && handleSubmit()}
         placeholder="Paste a URL to save..."
-        className="w-full h-10 px-3 pr-10 text-sm border border-zinc-200 dark:border-zinc-800 rounded-lg bg-white dark:bg-zinc-950 focus:outline-none focus:ring-2 focus:ring-zinc-900 dark:focus:ring-zinc-50 placeholder:text-zinc-400"
+        className="w-full h-10 px-3 pr-10 text-base md:text-sm border border-zinc-200 dark:border-zinc-800 rounded-lg bg-white dark:bg-zinc-950 focus:outline-none focus:ring-2 focus:ring-zinc-900 dark:focus:ring-zinc-50 placeholder:text-zinc-400"
       />
       <button
         onClick={handleSubmit}
