@@ -3,6 +3,7 @@
 import { useState, useEffect, useRef } from "react";
 import { type Bookmark, type Collection } from "@/lib/db/schema";
 import { deleteBookmark, toggleFavorite, moveBookmark } from "@/app/actions";
+import { useDashboard } from "@/lib/dashboard-context";
 import { formatDistanceToNow } from "@/lib/utils";
 import { MoreVertical, ArrowRight, Trash2, Star, ExternalLink } from "lucide-react";
 
@@ -13,6 +14,7 @@ type Props = {
 };
 
 export function BookmarkCard({ bookmark, variant, collections }: Props) {
+  const { refresh } = useDashboard();
   const [showMenu, setShowMenu] = useState(false);
   const [showMove, setShowMove] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
@@ -32,6 +34,18 @@ export function BookmarkCard({ bookmark, variant, collections }: Props) {
     await moveBookmark(bookmark.id, targetId);
     setShowMove(false);
     setShowMenu(false);
+    await refresh();
+  }
+
+  async function handleDelete() {
+    await deleteBookmark(bookmark.id);
+    setShowMenu(false);
+    await refresh();
+  }
+
+  async function handleFavorite() {
+    await toggleFavorite(bookmark.id, bookmark.isFavorite);
+    await refresh();
   }
 
   const menu = showMenu && (
@@ -55,7 +69,7 @@ export function BookmarkCard({ bookmark, variant, collections }: Props) {
         </div>
       )}
       <button
-        onClick={(e) => { e.preventDefault(); e.stopPropagation(); deleteBookmark(bookmark.id); setShowMenu(false); }}
+        onClick={(e) => { e.preventDefault(); e.stopPropagation(); handleDelete(); }}
         className="w-full text-left px-3 py-2 text-sm text-red-600 hover:bg-red-50 dark:hover:bg-red-950/20 flex items-center gap-2"
       >
         <Trash2 className="w-4 h-4" /> Delete
@@ -76,7 +90,7 @@ export function BookmarkCard({ bookmark, variant, collections }: Props) {
       </a>
       <div className="flex items-center gap-1 shrink-0 ml-2">
         <button
-          onClick={() => toggleFavorite(bookmark.id, bookmark.isFavorite)}
+          onClick={handleFavorite}
           className={`p-1.5 transition-opacity text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-50 ${bookmark.isFavorite ? "opacity-100" : "opacity-0 group-hover:opacity-100"}`}
         >
           <Star className={`w-4 h-4 ${bookmark.isFavorite ? "fill-current text-zinc-900 dark:text-zinc-50" : ""}`} />

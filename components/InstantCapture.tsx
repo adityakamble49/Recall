@@ -2,9 +2,11 @@
 
 import { useState } from "react";
 import { createBookmark } from "@/app/actions";
+import { useDashboard } from "@/lib/dashboard-context";
 import { Plus } from "lucide-react";
 
 export function InstantCapture() {
+  const { refresh } = useDashboard();
   const [url, setUrl] = useState("");
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState<{ text: string; isError: boolean } | null>(null);
@@ -22,6 +24,7 @@ export function InstantCapture() {
       } else {
         setUrl("");
         setMessage({ text: "Saved!", isError: false });
+        await refresh();
         setTimeout(() => setMessage(null), 2000);
       }
     } finally {
