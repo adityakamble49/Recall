@@ -284,7 +284,7 @@ export function DashboardContent({ collections, allBookmarks }: Props) {
               </p>
             </div>
           ) : (
-            <div className="border border-zinc-200 dark:border-zinc-800 rounded-xl bg-white dark:bg-zinc-950 divide-y divide-zinc-100 dark:divide-zinc-800 overflow-hidden">
+            <div className="border border-zinc-200 dark:border-zinc-800 rounded-xl bg-white dark:bg-zinc-950 divide-y divide-zinc-100 dark:divide-zinc-800 overflow-visible">
               {filtered.map((bm) => (
                 <BookmarkCard key={bm.id} bookmark={bm} variant="list" collections={collections} />
               ))}
