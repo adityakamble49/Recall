@@ -9,7 +9,6 @@ import {
 import { DashboardProvider } from "@/lib/dashboard-context";
 import { BookmarkCard } from "@/components/BookmarkCard";
 import { InstantCapture } from "@/components/InstantCapture";
-import { OpenTabGroupButton } from "@/components/OpenTabGroupButton";
 import { EditableCollectionName } from "@/components/EditableCollectionName";
 import { MergeCollections } from "@/components/MergeCollections";
 import {
@@ -117,7 +116,6 @@ export function DashboardContent({ collections, allBookmarks }: Props) {
   }
 
   const activeCollection = collections.find((c) => c.id === activeId);
-  const urls = filtered.map((b) => b.url);
 
   return (
     <DashboardProvider value={{ bookmarks, collections, refresh }}>
@@ -215,9 +213,6 @@ export function DashboardContent({ collections, allBookmarks }: Props) {
               )}
             </div>
             <div className="flex items-center gap-2">
-              {activeCollection && urls.length > 0 && (
-                <OpenTabGroupButton urls={urls} name={activeCollection.name} />
-              )}
               <button
                 onClick={() => setShowAddForm(!showAddForm)}
                 className={`flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium rounded-md transition-colors ${
