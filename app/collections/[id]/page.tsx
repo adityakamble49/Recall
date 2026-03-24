@@ -1,6 +1,7 @@
-import { getCollectionById, getBookmarksByCollection } from "@/app/actions";
+import { getCollectionById, getBookmarksByCollection, getCollections } from "@/app/actions";
 import { BookmarkCard } from "@/components/BookmarkCard";
 import { OpenTabGroupButton } from "@/components/OpenTabGroupButton";
+import { EditableCollectionName } from "@/components/EditableCollectionName";
 import { notFound } from "next/navigation";
 import Link from "next/link";
 
@@ -11,9 +12,10 @@ export default async function CollectionPage({ params }: { params: Promise<{ id:
   const collectionId = parseInt(id, 10);
   if (isNaN(collectionId)) notFound();
 
-  const [collection, bookmarksList] = await Promise.all([
+  const [collection, bookmarksList, allCollections] = await Promise.all([
     getCollectionById(collectionId),
     getBookmarksByCollection(collectionId),
+    getCollections(),
   ]);
 
   if (!collection) notFound();
@@ -34,9 +36,7 @@ export default async function CollectionPage({ params }: { params: Promise<{ id:
         </div>
         <div className="flex flex-col md:flex-row md:justify-between md:items-end gap-4">
           <div>
-            <h1 className="text-4xl md:text-[3.5rem] font-extrabold tracking-tighter text-on-surface leading-none">
-              {collection.name}
-            </h1>
+            <EditableCollectionName id={collection.id} name={collection.name} />
             {collection.description && (
               <p className="text-on-surface-variant text-sm mt-2 md:mt-4 max-w-lg">{collection.description}</p>
             )}
@@ -62,22 +62,19 @@ export default async function CollectionPage({ params }: { params: Promise<{ id:
         </div>
       ) : (
         <>
-          {/* Mobile: list */}
           <div className="md:hidden space-y-4">
             {bookmarksList.map((bm: any) => (
-              <BookmarkCard key={bm.id} bookmark={bm} variant="list" />
+              <BookmarkCard key={bm.id} bookmark={bm} variant="list" collections={allCollections} />
             ))}
           </div>
-          {/* Desktop: grid */}
           <div className="hidden md:grid grid-cols-2 xl:grid-cols-3 gap-6">
             {bookmarksList.map((bm: any) => (
-              <BookmarkCard key={bm.id} bookmark={bm} variant="card" />
+              <BookmarkCard key={bm.id} bookmark={bm} variant="card" collections={allCollections} />
             ))}
           </div>
         </>
       )}
 
-      {/* Mobile FAB */}
       <Link
         href={`/add?collection=${collectionId}`}
         className="md:hidden fixed bottom-24 right-6 z-40 w-14 h-14 bg-primary text-on-primary rounded-xl shadow-lg flex items-center justify-center active:scale-90 transition-all"

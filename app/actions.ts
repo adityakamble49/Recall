@@ -119,3 +119,36 @@ export async function getTotalBookmarkCount() {
     .where(eq(bookmarks.userId, session.user!.id!));
   return Number(result?.count ?? 0);
 }
+
+export async function moveBookmark(bookmarkId: number, targetCollectionId: number | null) {
+  const session = await getSession();
+  await (db as any).update(bookmarks)
+    .set({ collectionId: targetCollectionId })
+    .where(and(eq(bookmarks.id, bookmarkId), eq(bookmarks.userId, session.user!.id!)));
+  revalidatePath("/", "layout");
+}
+
+export async function updateCollection(id: number, data: { name?: string; description?: string }) {
+  const session = await getSession();
+  await (db as any).update(collections)
+    .set(data)
+    .where(and(eq(collections.id, id), eq(collections.userId, session.user!.id!)));
+  revalidatePath("/", "layout");
+}
+
+export async function mergeCollections(sourceIds: number[], targetId: number) {
+  const session = await getSession();
+  const userId = session.user!.id!;
+  // Move all bookmarks from sources to target
+  for (const srcId of sourceIds) {
+    await (db as any).update(bookmarks)
+      .set({ collectionId: targetId })
+      .where(and(eq(bookmarks.collectionId, srcId), eq(bookmarks.userId, userId)));
+  }
+  // Delete source collections
+  for (const srcId of sourceIds) {
+    await (db as any).delete(collections)
+      .where(and(eq(collections.id, srcId), eq(collections.userId, userId)));
+  }
+  revalidatePath("/", "layout");
+}

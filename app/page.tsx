@@ -136,13 +136,13 @@ export default async function Home() {
             {/* Mobile: list */}
             <div className="md:hidden space-y-4">
               {recentBookmarks.map((bm: any) => (
-                <BookmarkCard key={bm.id} bookmark={bm} variant="list" />
+                <BookmarkCard key={bm.id} bookmark={bm} variant="list" collections={collections} />
               ))}
             </div>
             {/* Desktop: grid */}
             <div className="hidden md:grid grid-cols-2 xl:grid-cols-4 gap-6">
               {recentBookmarks.map((bm: any) => (
-                <BookmarkCard key={bm.id} bookmark={bm} variant="card" />
+                <BookmarkCard key={bm.id} bookmark={bm} variant="card" collections={collections} />
               ))}
             </div>
           </>

@@ -1,6 +1,7 @@
 import { auth } from "@/auth";
 import { getCollectionsWithCount } from "@/app/actions";
 import { SignInPrompt } from "@/components/SignInPrompt";
+import { MergeCollections } from "@/components/MergeCollections";
 import Link from "next/link";
 
 export const dynamic = "force-dynamic";
@@ -18,12 +19,15 @@ export default async function CollectionsPage() {
           <span className="text-[0.6875rem] font-bold uppercase tracking-[0.1em] text-primary mb-2 block">Library</span>
           <h1 className="text-3xl md:text-[3.5rem] font-extrabold tracking-tighter">All Collections</h1>
         </div>
-        <Link
-          href="/add?mode=collection"
-          className="px-4 py-2 bg-primary text-on-primary text-sm font-bold rounded-md active:scale-95 transition-all"
-        >
-          + New
-        </Link>
+        <div className="flex gap-2">
+          <MergeCollections collections={collections} />
+          <Link
+            href="/add?mode=collection"
+            className="px-4 py-2 bg-primary text-on-primary text-sm font-bold rounded-md active:scale-95 transition-all"
+          >
+            + New
+          </Link>
+        </div>
       </div>
 
       {collections.length === 0 ? (
