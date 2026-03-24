@@ -1,3 +1,7 @@
+<p align="center">
+  <img src="assets/recall-github.png" alt="Recall" width="600" />
+</p>
+
 # Recall
 
 **Precision bookmark organization. Your digital library, evolved into a high-performance utility.**
