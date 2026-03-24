@@ -120,7 +120,11 @@ export function DashboardContent({ collections, allBookmarks }: Props) {
   const urls = filtered.map((b) => b.url);
 
   return (
-    <div className="grid grid-cols-1 lg:grid-cols-[280px_1fr] gap-12 min-w-0">
+    <>
+      <h1 className="text-4xl md:text-5xl font-bold tracking-tight mb-16">
+        <span className="font-mono">{bookmarks.length}</span> <span className="text-zinc-300 dark:text-zinc-700">bookmarks</span>
+      </h1>
+      <div className="grid grid-cols-1 lg:grid-cols-[280px_1fr] gap-12 min-w-0">
       {/* Left: Collections */}
       <aside>
         <div className="flex items-center justify-between mb-5">
@@ -284,5 +288,6 @@ export function DashboardContent({ collections, allBookmarks }: Props) {
         )}
       </section>
     </div>
+    </>
   );
 }
