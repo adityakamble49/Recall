@@ -97,7 +97,7 @@ export function DashboardContent({ collections: initialCollections, allBookmarks
       setAddUrl("");
       setAddTitle("");
       setShowAddForm(false);
-      refresh();
+      await refresh();
     } finally {
       setAddLoading(false);
     }
@@ -111,6 +111,7 @@ export function DashboardContent({ collections: initialCollections, allBookmarks
       await createCollection({ name: newColName });
       setNewColName("");
       setShowNewCollection(false);
+      await refresh();
     } finally {
       setNewColLoading(false);
     }
@@ -121,26 +122,26 @@ export function DashboardContent({ collections: initialCollections, allBookmarks
     if (!confirm(`Move "${col?.name}" to trash?`)) return;
     await deleteCollection(id);
     if (activeId === id) setActiveId(null);
-    refresh();
+    await refresh();
   }
 
   async function handleRestore(id: number) {
     await restoreCollection(id);
-    refresh();
+    await refresh();
   }
 
   async function handlePermanentDelete(id: number) {
     const col = deletedCollections.find((c) => c.id === id);
     if (!confirm(`Permanently delete "${col?.name}" and all its bookmarks? This cannot be undone.`)) return;
     await permanentlyDeleteCollection(id);
-    refresh();
+    await refresh();
   }
 
   async function handleRenameCollection(id: number, currentName: string) {
     const newName = prompt("Rename collection:", currentName);
     if (!newName || newName.trim() === currentName) return;
     await updateCollection(id, { name: newName.trim() });
-    refresh();
+    await refresh();
   }
 
   const activeCollection = collections.find((c) => c.id === activeId);

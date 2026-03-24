@@ -2,7 +2,6 @@
 
 import { db } from "@/lib/db";
 import { collections, bookmarks } from "@/lib/db/schema";
-import { revalidatePath } from "next/cache";
 import { desc, eq, and, count, notInArray, isNull, or } from "drizzle-orm";
 import { auth } from "@/auth";
 
@@ -38,7 +37,6 @@ export async function getCollectionsWithCount() {
 export async function createCollection(data: { name: string; description?: string; icon?: string; color?: string }) {
   const session = await getSession();
   await (db as any).insert(collections).values({ userId: session.user!.id!, ...data });
-  revalidatePath("/", "layout");
 }
 
 export async function deleteCollection(id: number) {
@@ -131,14 +129,12 @@ export async function createBookmark(data: { title: string; url: string; descrip
     collectionId: data.collectionId,
     favicon,
   });
-  revalidatePath("/", "layout");
   return {};
 }
 
 export async function deleteBookmark(id: number) {
   const session = await getSession();
   await (db as any).delete(bookmarks).where(and(eq(bookmarks.id, id), eq(bookmarks.userId, session.user!.id!)));
-  revalidatePath("/", "layout");
 }
 
 export async function toggleFavorite(id: number, current: boolean) {
@@ -146,7 +142,6 @@ export async function toggleFavorite(id: number, current: boolean) {
   await (db as any).update(bookmarks)
     .set({ isFavorite: !current })
     .where(and(eq(bookmarks.id, id), eq(bookmarks.userId, session.user!.id!)));
-  revalidatePath("/", "layout");
 }
 
 export async function getTotalBookmarkCount() {
@@ -173,7 +168,6 @@ export async function moveBookmark(bookmarkId: number, targetCollectionId: numbe
   await (db as any).update(bookmarks)
     .set({ collectionId: targetCollectionId })
     .where(and(eq(bookmarks.id, bookmarkId), eq(bookmarks.userId, session.user!.id!)));
-  revalidatePath("/", "layout");
 }
 
 export async function renameBookmark(id: number, title: string) {
@@ -188,7 +182,6 @@ export async function updateCollection(id: number, data: { name?: string; descri
   await (db as any).update(collections)
     .set(data)
     .where(and(eq(collections.id, id), eq(collections.userId, session.user!.id!)));
-  revalidatePath("/", "layout");
 }
 
 export async function mergeCollections(sourceIds: number[], targetId: number) {
@@ -205,6 +198,5 @@ export async function mergeCollections(sourceIds: number[], targetId: number) {
     await (db as any).delete(collections)
       .where(and(eq(collections.id, srcId), eq(collections.userId, userId)));
   }
-  revalidatePath("/", "layout");
 }
 
