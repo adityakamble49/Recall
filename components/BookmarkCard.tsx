@@ -38,6 +38,7 @@ export function BookmarkCard({ bookmark, variant, collections }: Props) {
   }
 
   async function handleDelete() {
+    if (!confirm(`Delete "${bookmark.title}"?`)) return;
     await deleteBookmark(bookmark.id);
     setShowMenu(false);
     await refresh();

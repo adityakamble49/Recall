@@ -18,7 +18,7 @@ export async function getCollections() {
   const session = await getSession();
   return (db as any).select().from(collections)
     .where(eq(collections.userId, session.user!.id!))
-    .orderBy(desc(collections.isPinned), desc(collections.createdAt));
+    .orderBy(desc(collections.isPinned), collections.name);
 }
 
 export async function getCollectionsWithCount() {
