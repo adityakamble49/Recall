@@ -1,11 +1,13 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { updateCollection } from "@/app/actions";
 
 export function EditableCollectionName({ id, name }: { id: number; name: string }) {
   const [editing, setEditing] = useState(false);
   const [value, setValue] = useState(name);
+
+  useEffect(() => { setValue(name); setEditing(false); }, [id, name]);
 
   async function handleSave() {
     const trimmed = value.trim();
