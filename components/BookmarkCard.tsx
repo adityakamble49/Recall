@@ -2,10 +2,10 @@
 
 import { useState, useEffect, useRef } from "react";
 import { type Bookmark, type Collection } from "@/lib/db/schema";
-import { deleteBookmark, toggleFavorite, moveBookmark } from "@/app/actions";
+import { deleteBookmark, toggleFavorite, moveBookmark, renameBookmark } from "@/app/actions";
 import { useDashboard } from "@/lib/dashboard-context";
 import { formatDistanceToNow } from "@/lib/utils";
-import { MoreVertical, ArrowRight, Trash2, Star, ExternalLink } from "lucide-react";
+import { MoreVertical, ArrowRight, Trash2, Star, ExternalLink, Pencil } from "lucide-react";
 
 type Props = {
   bookmark: Bookmark;
@@ -51,8 +51,22 @@ export function BookmarkCard({ bookmark, variant, collections, showCollection }:
     await refresh();
   }
 
+  async function handleRename() {
+    const newTitle = prompt("Rename bookmark:", bookmark.title);
+    if (!newTitle || newTitle.trim() === bookmark.title) return;
+    await renameBookmark(bookmark.id, newTitle.trim());
+    setShowMenu(false);
+    refresh();
+  }
+
   const menu = showMenu && (
     <div ref={menuRef} className="absolute right-0 top-10 z-20 bg-white dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 rounded-lg shadow-sm py-1 min-w-[160px]">
+      <button
+        onClick={(e) => { e.preventDefault(); e.stopPropagation(); handleRename(); }}
+        className="w-full text-left px-3 py-2 text-sm hover:bg-zinc-50 dark:hover:bg-zinc-900 flex items-center gap-2"
+      >
+        <Pencil className="w-4 h-4" /> Rename
+      </button>
       <button
         onClick={(e) => { e.preventDefault(); e.stopPropagation(); setShowMove(!showMove); }}
         className="w-full text-left px-3 py-2 text-sm hover:bg-zinc-50 dark:hover:bg-zinc-900 flex items-center gap-2"

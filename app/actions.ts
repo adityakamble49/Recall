@@ -176,6 +176,13 @@ export async function moveBookmark(bookmarkId: number, targetCollectionId: numbe
   revalidatePath("/", "layout");
 }
 
+export async function renameBookmark(id: number, title: string) {
+  const session = await getSession();
+  await (db as any).update(bookmarks)
+    .set({ title })
+    .where(and(eq(bookmarks.id, id), eq(bookmarks.userId, session.user!.id!)));
+}
+
 export async function updateCollection(id: number, data: { name?: string; description?: string }) {
   const session = await getSession();
   await (db as any).update(collections)
