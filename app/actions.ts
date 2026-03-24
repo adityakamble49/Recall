@@ -3,7 +3,7 @@
 import { db } from "@/lib/db";
 import { collections, bookmarks } from "@/lib/db/schema";
 import { revalidatePath } from "next/cache";
-import { desc, eq, and, count } from "drizzle-orm";
+import { desc, eq, and, count, notInArray, isNull, or } from "drizzle-orm";
 import { auth } from "@/auth";
 
 async function getSession() {
@@ -64,17 +64,25 @@ export async function restoreCollection(id: number) {
 
 export async function permanentlyDeleteCollection(id: number) {
   const session = await getSession();
+  const userId = session.user!.id!;
+  await (db as any).delete(bookmarks)
+    .where(and(eq(bookmarks.collectionId, id), eq(bookmarks.userId, userId)));
   await (db as any).delete(collections)
-    .where(and(eq(collections.id, id), eq(collections.userId, session.user!.id!)));
+    .where(and(eq(collections.id, id), eq(collections.userId, userId)));
 }
 
 // --- Bookmarks ---
 
 export async function getAllBookmarks() {
   const session = await getSession();
-  return (db as any).select().from(bookmarks)
-    .where(eq(bookmarks.userId, session.user!.id!))
-    .orderBy(desc(bookmarks.createdAt));
+  const userId = session.user!.id!;
+  const trashedIds = (await (db as any).select({ id: collections.id }).from(collections)
+    .where(and(eq(collections.userId, userId), eq(collections.isDeleted, true))))
+    .map((c: any) => c.id);
+  const where = trashedIds.length > 0
+    ? and(eq(bookmarks.userId, userId), or(isNull(bookmarks.collectionId), notInArray(bookmarks.collectionId, trashedIds)))
+    : eq(bookmarks.userId, userId);
+  return (db as any).select().from(bookmarks).where(where).orderBy(desc(bookmarks.createdAt));
 }
 
 export async function getRecentBookmarks(limit = 8) {
@@ -192,3 +200,4 @@ export async function mergeCollections(sourceIds: number[], targetId: number) {
   }
   revalidatePath("/", "layout");
 }
+

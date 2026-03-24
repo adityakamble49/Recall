@@ -131,7 +131,7 @@ export function DashboardContent({ collections: initialCollections, allBookmarks
 
   async function handlePermanentDelete(id: number) {
     const col = deletedCollections.find((c) => c.id === id);
-    if (!confirm(`Permanently delete "${col?.name}"? This cannot be undone.`)) return;
+    if (!confirm(`Permanently delete "${col?.name}" and all its bookmarks? This cannot be undone.`)) return;
     await permanentlyDeleteCollection(id);
     refresh();
   }
