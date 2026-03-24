@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="assets/recall-github.png" alt="Recall" width="600" />
+  <img src="assets/recall-github.png" alt="Recall" />
 </p>
 
 # Recall
