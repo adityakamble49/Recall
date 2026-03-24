@@ -10,11 +10,17 @@ Recall is a minimalistic bookmark tracker with a web app and Chrome extension. S
 
 🌐 [Live App](https://recall-ebon.vercel.app) · [Issues](https://github.com/adityakamble49/Recall/issues)
 
+![](assets/screenshot-webapp.png)
+
 ---
 
 ## Overview
 
 Recall solves the problem of scattered bookmarks across browsers and devices. Instead of a flat list, bookmarks are organized into **collections** that can be opened as **Chrome tab groups** with one click.
+
+<table>
+<tr>
+<td>
 
 ### Key Features
 
@@ -27,6 +33,15 @@ Recall solves the problem of scattered bookmarks across browsers and devices. In
 - **Live Reload** — Dashboard auto-refreshes when bookmarks change from another session
 - **Dev/Prod Toggle** — Extension supports switching between local and production environments
 - **Responsive** — Single-page dashboard works on desktop and mobile
+
+</td>
+<td>
+
+<img src="assets/screenshot-chrome-extension.png" width="360" />
+
+</td>
+</tr>
+</table>
 
 ### Tech Stack
 
@@ -119,10 +134,8 @@ The Chrome extension lets you save the current tab to any collection and open co
 
 ### Dev / Prod Toggle
 
-The extension has a built-in environment switcher:
-
 - Click the ⚙️ gear icon in the extension header
-- Toggle between **DEV** (`localhost:3030`) and **PROD** (Vercel URL)
+- Toggle between **DEV** and **PROD**
 - Each environment can have its own token
 
 ---
