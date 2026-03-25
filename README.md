@@ -25,8 +25,8 @@ Recall solves the problem of scattered bookmarks across browsers and devices. In
 ### Key Features
 
 - **Collections** — Organize bookmarks into named collections, rename, merge, and delete
-- **Chrome Tab Groups** — Open all bookmarks in a collection as a Chrome tab group via the extension
-- **Chrome Extension** — Save the current tab, edit title before saving, save tab groups as collections
+- **Chrome Tab Groups** — Recall a collection as a Chrome tab group, or Snap a tab group into a collection
+- **Chrome Extension** — Save the current tab, edit title, Recall collections as tab groups, Snap tab groups as collections
 - **Instant Capture** — Quick URL paste on the dashboard for rapid bookmarking
 - **Move & Organize** — Move bookmarks between collections, favorite, and delete
 - **Duplicate Detection** — Prevents saving the same URL twice in a collection

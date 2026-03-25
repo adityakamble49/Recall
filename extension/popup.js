@@ -118,7 +118,7 @@ function showMain(tab, collections) {
   const colList = collections.map(
     (c) => `<div class="col-item">
       <span class="name">${escapeHtml(c.name)} <span class="count">${c.bookmarkCount}</span></span>
-      <button class="action-btn" data-id="${c.id}" data-name="${escapeAttr(c.name)}">Open</button>
+      <button class="action-btn" data-id="${c.id}" data-name="${escapeAttr(c.name)}">Recall</button>
     </div>`
   ).join("");
 
@@ -142,7 +142,7 @@ function showMain(tab, collections) {
     <div id="status"></div>
     ${collections.length > 0 ? `
       <div class="section">
-        <div class="section-label">Collections → Tab Groups</div>
+        <div class="section-label">Recall Groups</div>
         ${colList}
       </div>` : ""}
     <div id="tab-groups-section"></div>
@@ -210,13 +210,13 @@ function showMain(tab, collections) {
           <span style="width:8px;height:8px;border-radius:50%;background:${chromeColorToHex(g.color)};display:inline-block;"></span>
           ${escapeHtml(g.title)} <span class="count">${g.tabs.length}</span>
         </span>
-        <button class="action-btn save-group-btn" data-group='${escapeAttr(JSON.stringify(g))}'>Save</button>
+        <button class="action-btn save-group-btn" data-group='${escapeAttr(JSON.stringify(g))}'>Snap</button>
       </div>
     `).join("");
 
     section.innerHTML = `
       <div class="section">
-        <div class="section-label">Save Tab Groups</div>
+        <div class="section-label">Snap Groups</div>
         ${items}
       </div>`;
 
