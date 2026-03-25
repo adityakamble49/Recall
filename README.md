@@ -140,6 +140,29 @@ The Chrome extension lets you save the current tab to any collection and open co
 
 ---
 
+## iOS Share Sheet (via Shortcuts)
+
+Save links from any iOS app (Safari, Twitter, Reddit, etc.) directly to Recall using an iOS Shortcut.
+
+### Setup
+
+1. Open **Shortcuts** app → tap **+** → name it **Save to Recall**
+2. Add these actions in order:
+
+| # | Action | Configuration |
+|---|--------|--------------|
+| 1 | **Receive input** | Accept: URLs only |
+| 2 | **Text** | Paste your Recall API token |
+| 3 | **Get Contents of URL** | URL: `https://recall-ebon.vercel.app/api/bookmarks` — Method: POST — Header: `Authorization: Bearer <Text>` — Body (JSON): `url` = Shortcut Input, `title` = Shortcut Input |
+| 4 | **Show Notification** | `✓ Saved to Recall` |
+
+3. Tap **ⓘ** at the bottom → enable **Show in Share Sheet**
+4. Done — "Save to Recall" now appears when you share any link on iOS
+
+> Get your API token from **Settings → Chrome Extension** in the Recall web app.
+
+---
+
 ## Database Schema
 
 ```
