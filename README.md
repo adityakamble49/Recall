@@ -37,7 +37,7 @@ Recall solves the problem of scattered bookmarks across browsers and devices. In
 </td>
 <td>
 
-<img src="assets/screenshot-chrome-extension.png" width="360" />
+<img src="assets/screenshot-chrome-extension-2.png" width="360" />
 
 </td>
 </tr>
