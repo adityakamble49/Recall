@@ -14,7 +14,7 @@ import { InstantCapture } from "@/components/InstantCapture";
 import { MergeCollections } from "@/components/MergeCollections";
 import {
   FolderOpen, Bookmark as BookmarkIcon, Plus,
-  X, Trash2, Pencil, Undo2, ChevronDown,
+  X, Trash2, Pencil, Undo2, ChevronDown, CheckSquare,
 } from "lucide-react";
 
 type Props = {
@@ -30,6 +30,7 @@ export function DashboardContent({ collections: initialCollections, allBookmarks
   const [deletedCollections, setDeletedCollections] = useState<Collection[]>(initialDeleted);
   const [showTrash, setShowTrash] = useState(false);
   const [selectedIds, setSelectedIds] = useState<Set<number>>(new Set());
+  const [selectMode, setSelectMode] = useState(false);
   const [showAddForm, setShowAddForm] = useState(false);
   const [showNewCollection, setShowNewCollection] = useState(false);
 
@@ -76,13 +77,13 @@ export function DashboardContent({ collections: initialCollections, allBookmarks
   useEffect(() => {
     function handleEscape(e: KeyboardEvent) {
       if (e.key !== "Escape") return;
-      if (selectedIds.size > 0) { setSelectedIds(new Set()); return; }
+      if (selectedIds.size > 0 || selectMode) { setSelectedIds(new Set()); setSelectMode(false); return; }
       if (showAddForm) { setShowAddForm(false); return; }
       if (showNewCollection) { setShowNewCollection(false); setNewColName(""); return; }
     }
     document.addEventListener("keydown", handleEscape);
     return () => document.removeEventListener("keydown", handleEscape);
-  }, [showAddForm, showNewCollection, selectedIds]);
+  }, [showAddForm, showNewCollection, selectedIds, selectMode]);
 
   async function handleAddBookmark(e: React.FormEvent) {
     e.preventDefault();
@@ -189,7 +190,7 @@ export function DashboardContent({ collections: initialCollections, allBookmarks
 
           <div className="space-y-1">
             <button
-              onClick={() => { setActiveId(null); setSelectedIds(new Set()); }}
+              onClick={() => { setActiveId(null); setSelectedIds(new Set()); setSelectMode(false); }}
               className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl text-left transition-colors ${
                 activeId === null
                   ? "bg-zinc-900 dark:bg-zinc-50 text-white dark:text-zinc-900"
@@ -203,7 +204,7 @@ export function DashboardContent({ collections: initialCollections, allBookmarks
             {collections.map((col) => (
               <div key={col.id} className="group relative">
                 <button
-                  onClick={() => { setActiveId(col.id); setSelectedIds(new Set()); }}
+                  onClick={() => { setActiveId(col.id); setSelectedIds(new Set()); setSelectMode(false); }}
                   className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl text-left transition-colors ${
                     activeId === col.id
                       ? "bg-zinc-900 dark:bg-zinc-50 text-white dark:text-zinc-900"
@@ -304,6 +305,17 @@ export function DashboardContent({ collections: initialCollections, allBookmarks
             </div>
             <div className="flex items-center gap-2">
               <button
+                onClick={() => { setSelectMode(!selectMode); if (selectMode) setSelectedIds(new Set()); }}
+                className={`flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium rounded-md transition-colors ${
+                  selectMode
+                    ? "bg-zinc-200 dark:bg-zinc-800 text-zinc-900 dark:text-zinc-50"
+                    : "text-zinc-500 hover:text-zinc-900 dark:hover:text-zinc-50 border border-zinc-200 dark:border-zinc-800 hover:border-zinc-300"
+                }`}
+              >
+                <CheckSquare className="w-4 h-4" />
+                {selectMode ? "Done" : "Select"}
+              </button>
+              <button
                 onClick={() => setShowAddForm(!showAddForm)}
                 className={`flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium rounded-md transition-colors ${
                   showAddForm
@@ -370,7 +382,7 @@ export function DashboardContent({ collections: initialCollections, allBookmarks
           ) : (
             <div className="border border-zinc-200 dark:border-zinc-800 rounded-xl bg-white dark:bg-zinc-950 divide-y divide-zinc-100 dark:divide-zinc-800 overflow-visible">
               {filtered.map((bm) => (
-                <BookmarkCard key={bm.id} bookmark={bm} variant="list" collections={collections} showCollection={activeId === null} selected={selectedIds.has(bm.id)} onSelect={toggleSelect} />
+                <BookmarkCard key={bm.id} bookmark={bm} variant="list" collections={collections} showCollection={activeId === null} selected={selectedIds.has(bm.id)} onSelect={selectMode ? toggleSelect : undefined} />
               ))}
             </div>
           )}
