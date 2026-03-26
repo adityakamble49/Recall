@@ -2,7 +2,7 @@
 
 import { db } from "@/lib/db";
 import { collections, bookmarks } from "@/lib/db/schema";
-import { desc, eq, and, count, notInArray, isNull, or } from "drizzle-orm";
+import { desc, eq, and, count, notInArray, isNull, or, inArray } from "drizzle-orm";
 import { auth } from "@/auth";
 
 async function getSession() {
@@ -219,3 +219,16 @@ export async function mergeCollections(sourceIds: number[], targetId: number) {
   }
 }
 
+
+export async function bulkMoveBookmarks(ids: number[], collectionId: number) {
+  const session = await getSession();
+  await (db as any).update(bookmarks)
+    .set({ collectionId })
+    .where(and(eq(bookmarks.userId, session.user!.id!), inArray(bookmarks.id, ids)));
+}
+
+export async function bulkDeleteBookmarks(ids: number[]) {
+  const session = await getSession();
+  await (db as any).delete(bookmarks)
+    .where(and(eq(bookmarks.userId, session.user!.id!), inArray(bookmarks.id, ids)));
+}

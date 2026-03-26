@@ -6,7 +6,7 @@ import {
   getAllBookmarks, getBookmarkChecksum,
   createBookmark, createCollection, deleteCollection, updateCollection,
   restoreCollection, permanentlyDeleteCollection, getDeletedCollections,
-  getCollectionsWithCount,
+  getCollectionsWithCount, bulkMoveBookmarks, bulkDeleteBookmarks,
 } from "@/app/actions";
 import { DashboardProvider } from "@/lib/dashboard-context";
 import { BookmarkCard } from "@/components/BookmarkCard";
@@ -29,6 +29,7 @@ export function DashboardContent({ collections: initialCollections, allBookmarks
   const [collections, setCollections] = useState(initialCollections);
   const [deletedCollections, setDeletedCollections] = useState<Collection[]>(initialDeleted);
   const [showTrash, setShowTrash] = useState(false);
+  const [selectedIds, setSelectedIds] = useState<Set<number>>(new Set());
   const [showAddForm, setShowAddForm] = useState(false);
   const [showNewCollection, setShowNewCollection] = useState(false);
 
@@ -75,12 +76,13 @@ export function DashboardContent({ collections: initialCollections, allBookmarks
   useEffect(() => {
     function handleEscape(e: KeyboardEvent) {
       if (e.key !== "Escape") return;
+      if (selectedIds.size > 0) { setSelectedIds(new Set()); return; }
       if (showAddForm) { setShowAddForm(false); return; }
       if (showNewCollection) { setShowNewCollection(false); setNewColName(""); return; }
     }
     document.addEventListener("keydown", handleEscape);
     return () => document.removeEventListener("keydown", handleEscape);
-  }, [showAddForm, showNewCollection]);
+  }, [showAddForm, showNewCollection, selectedIds]);
 
   async function handleAddBookmark(e: React.FormEvent) {
     e.preventDefault();
@@ -145,6 +147,27 @@ export function DashboardContent({ collections: initialCollections, allBookmarks
     await refresh();
   }
 
+  function toggleSelect(id: number) {
+    setSelectedIds(prev => {
+      const next = new Set(prev);
+      next.has(id) ? next.delete(id) : next.add(id);
+      return next;
+    });
+  }
+
+  async function handleBulkMove(collectionId: number) {
+    await bulkMoveBookmarks([...selectedIds], collectionId);
+    setSelectedIds(new Set());
+    await refresh();
+  }
+
+  async function handleBulkDelete() {
+    if (!confirm(`Delete ${selectedIds.size} bookmark${selectedIds.size > 1 ? "s" : ""}?`)) return;
+    await bulkDeleteBookmarks([...selectedIds]);
+    setSelectedIds(new Set());
+    await refresh();
+  }
+
   const activeCollection = collections.find((c) => c.id === activeId);
 
   return (
@@ -166,7 +189,7 @@ export function DashboardContent({ collections: initialCollections, allBookmarks
 
           <div className="space-y-1">
             <button
-              onClick={() => setActiveId(null)}
+              onClick={() => { setActiveId(null); setSelectedIds(new Set()); }}
               className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl text-left transition-colors ${
                 activeId === null
                   ? "bg-zinc-900 dark:bg-zinc-50 text-white dark:text-zinc-900"
@@ -180,7 +203,7 @@ export function DashboardContent({ collections: initialCollections, allBookmarks
             {collections.map((col) => (
               <div key={col.id} className="group relative">
                 <button
-                  onClick={() => setActiveId(col.id)}
+                  onClick={() => { setActiveId(col.id); setSelectedIds(new Set()); }}
                   className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl text-left transition-colors ${
                     activeId === col.id
                       ? "bg-zinc-900 dark:bg-zinc-50 text-white dark:text-zinc-900"
@@ -347,12 +370,31 @@ export function DashboardContent({ collections: initialCollections, allBookmarks
           ) : (
             <div className="border border-zinc-200 dark:border-zinc-800 rounded-xl bg-white dark:bg-zinc-950 divide-y divide-zinc-100 dark:divide-zinc-800 overflow-visible">
               {filtered.map((bm) => (
-                <BookmarkCard key={bm.id} bookmark={bm} variant="list" collections={collections} showCollection={activeId === null} />
+                <BookmarkCard key={bm.id} bookmark={bm} variant="list" collections={collections} showCollection={activeId === null} selected={selectedIds.has(bm.id)} onSelect={toggleSelect} />
               ))}
             </div>
           )}
         </section>
       </div>
+
+      {selectedIds.size > 0 && (
+        <div className="fixed bottom-6 left-1/2 -translate-x-1/2 flex items-center gap-3 px-4 py-3 bg-zinc-900 dark:bg-zinc-50 text-white dark:text-zinc-900 rounded-xl shadow-lg z-50">
+          <span className="text-sm font-mono">{selectedIds.size} selected</span>
+          <select
+            onChange={async (e) => { if (e.target.value) { await handleBulkMove(parseInt(e.target.value)); } e.target.value = ""; }}
+            className="px-2 py-1 text-xs rounded-md bg-zinc-800 dark:bg-zinc-200 text-white dark:text-zinc-900 border-none"
+          >
+            <option value="">Move to...</option>
+            {collections.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
+          </select>
+          <button onClick={handleBulkDelete} className="px-3 py-1 text-xs font-medium bg-red-600 text-white rounded-md hover:bg-red-700">
+            Delete
+          </button>
+          <button onClick={() => setSelectedIds(new Set())} className="px-2 py-1 text-xs text-zinc-400 hover:text-white dark:text-zinc-500 dark:hover:text-zinc-900">
+            <X className="w-4 h-4" />
+          </button>
+        </div>
+      )}
     </DashboardProvider>
   );
 }

@@ -12,9 +12,11 @@ type Props = {
   variant: "list" | "card";
   collections?: Collection[];
   showCollection?: boolean;
+  selected?: boolean;
+  onSelect?: (id: number) => void;
 };
 
-export function BookmarkCard({ bookmark, variant, collections, showCollection }: Props) {
+export function BookmarkCard({ bookmark, variant, collections, showCollection, selected, onSelect }: Props) {
   const { refresh } = useDashboard();
   const [showMenu, setShowMenu] = useState(false);
   const [showMove, setShowMove] = useState(false);
@@ -56,7 +58,7 @@ export function BookmarkCard({ bookmark, variant, collections, showCollection }:
     if (!newTitle || newTitle.trim() === bookmark.title) return;
     await renameBookmark(bookmark.id, newTitle.trim());
     setShowMenu(false);
-    refresh();
+    await refresh();
   }
 
   const menu = showMenu && (
@@ -92,7 +94,14 @@ export function BookmarkCard({ bookmark, variant, collections, showCollection }:
   );
 
   return (
-    <div className="relative group flex items-center justify-between px-4 py-3 hover:bg-zinc-50 dark:hover:bg-zinc-900/50 transition-colors">
+    <div className={`relative group flex items-center justify-between px-4 py-3 hover:bg-zinc-50 dark:hover:bg-zinc-900/50 transition-colors ${selected ? "bg-zinc-50 dark:bg-zinc-900/50" : ""}`}>
+      {onSelect && (
+        <button onClick={() => onSelect(bookmark.id)} className="shrink-0 mr-3">
+          <div className={`w-4 h-4 rounded border transition-colors ${selected ? "bg-zinc-900 dark:bg-zinc-50 border-zinc-900 dark:border-zinc-50" : "border-zinc-300 dark:border-zinc-700"}`}>
+            {selected && <svg viewBox="0 0 16 16" className="w-4 h-4 text-white dark:text-zinc-900"><path fill="currentColor" d="M6.5 11.5L3 8l1-1 2.5 2.5L11 5l1 1z"/></svg>}
+          </div>
+        </button>
+      )}
       <a href={bookmark.url} target="_blank" rel="noopener noreferrer" className="flex items-center gap-4 flex-1 min-w-0">
         <div className="w-10 h-10 rounded-lg bg-zinc-100 dark:bg-zinc-900 flex items-center justify-center shrink-0">
           {bookmark.favicon ? <img src={bookmark.favicon} alt="" className="w-5 h-5" /> : <ExternalLink className="w-4 h-4 text-zinc-400" />}
