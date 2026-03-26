@@ -75,9 +75,6 @@ export function BookmarkCard({ bookmark, variant, collections, showCollection }:
       </button>
       {showMove && collections && (
         <div className="px-1 py-1 border-t border-zinc-100 dark:border-zinc-800">
-          <button onClick={(e) => { e.preventDefault(); e.stopPropagation(); handleMove(null); }} className="w-full text-left px-2 py-1.5 text-xs rounded hover:bg-zinc-50 dark:hover:bg-zinc-900 text-zinc-500">
-            No collection
-          </button>
           {collections.filter(c => c.id !== bookmark.collectionId).map(c => (
             <button key={c.id} onClick={(e) => { e.preventDefault(); e.stopPropagation(); handleMove(c.id); }} className="w-full text-left px-2 py-1.5 text-xs rounded hover:bg-zinc-50 dark:hover:bg-zinc-900">
               {c.name}

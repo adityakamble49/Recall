@@ -13,11 +13,22 @@ async function getSession() {
 
 // --- Collections ---
 
+async function getOrCreateDefaultCollection(userId: string): Promise<number> {
+  const [existing] = await (db as any).select({ id: collections.id }).from(collections)
+    .where(and(eq(collections.userId, userId), eq(collections.isDefault, true)))
+    .limit(1);
+  if (existing) return existing.id;
+  const [created] = await (db as any).insert(collections)
+    .values({ userId, name: "Recall Later", isDefault: true })
+    .returning({ id: collections.id });
+  return created.id;
+}
+
 export async function getCollections() {
   const session = await getSession();
   return (db as any).select().from(collections)
     .where(and(eq(collections.userId, session.user!.id!), eq(collections.isDeleted, false)))
-    .orderBy(desc(collections.isPinned), collections.name);
+    .orderBy(desc(collections.isDefault), desc(collections.isPinned), collections.name);
 }
 
 export async function getCollectionsWithCount() {
@@ -41,6 +52,9 @@ export async function createCollection(data: { name: string; description?: strin
 
 export async function deleteCollection(id: number) {
   const session = await getSession();
+  const [col] = await (db as any).select({ isDefault: collections.isDefault }).from(collections)
+    .where(and(eq(collections.id, id), eq(collections.userId, session.user!.id!)));
+  if (col?.isDefault) throw new Error("Cannot delete default collection");
   await (db as any).update(collections)
     .set({ isDeleted: true, deletedAt: new Date() })
     .where(and(eq(collections.id, id), eq(collections.userId, session.user!.id!)));
@@ -107,26 +121,24 @@ export async function getCollectionById(id: number) {
 
 export async function createBookmark(data: { title: string; url: string; description?: string; collectionId?: number }): Promise<{ error?: string }> {
   const session = await getSession();
+  const userId = session.user!.id!;
+  const collectionId = data.collectionId ?? await getOrCreateDefaultCollection(userId);
 
   // Duplicate check within same collection
-  const where = data.collectionId
-    ? and(eq(bookmarks.userId, session.user!.id!), eq(bookmarks.collectionId, data.collectionId), eq(bookmarks.url, data.url))
-    : and(eq(bookmarks.userId, session.user!.id!), eq(bookmarks.url, data.url));
-  const [existing] = await (db as any).select({ id: bookmarks.id }).from(bookmarks).where(where).limit(1);
+  const [existing] = await (db as any).select({ id: bookmarks.id }).from(bookmarks)
+    .where(and(eq(bookmarks.userId, userId), eq(bookmarks.collectionId, collectionId), eq(bookmarks.url, data.url)))
+    .limit(1);
   if (existing) return { error: "Already saved in this collection" };
 
   let favicon: string | undefined;
-  try {
-    const u = new URL(data.url);
-    favicon = `https://www.google.com/s2/favicons?domain=${u.hostname}&sz=64`;
-  } catch { /* ignore */ }
+  try { favicon = `https://www.google.com/s2/favicons?domain=${new URL(data.url).hostname}&sz=64`; } catch {}
 
   await (db as any).insert(bookmarks).values({
-    userId: session.user!.id!,
+    userId,
     title: data.title,
     url: data.url,
     description: data.description,
-    collectionId: data.collectionId,
+    collectionId,
     favicon,
   });
   return {};

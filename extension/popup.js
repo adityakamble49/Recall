@@ -134,7 +134,6 @@ function showMain(tab, collections) {
     <div class="form">
       <label>Collection</label>
       <select id="collection-select">
-        <option value="">No collection</option>
         ${options}
       </select>
       <button class="btn-primary" id="save-btn">Save Bookmark</button>

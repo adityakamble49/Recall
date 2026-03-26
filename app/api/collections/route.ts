@@ -2,14 +2,15 @@ import { NextRequest, NextResponse } from "next/server";
 import { getApiUser } from "@/lib/api-auth";
 import { db } from "@/lib/db";
 import { collections, bookmarks } from "@/lib/db/schema";
-import { eq, count, and } from "drizzle-orm";
+import { eq, count, and, desc } from "drizzle-orm";
 
 export async function GET() {
   const userId = await getApiUser();
   if (!userId) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
   const cols = await (db as any).select().from(collections)
-    .where(and(eq(collections.userId, userId), eq(collections.isDeleted, false)));
+    .where(and(eq(collections.userId, userId), eq(collections.isDeleted, false)))
+    .orderBy(desc(collections.isDefault), desc(collections.isPinned), collections.name);
 
   const counts = await (db as any).select({
     collectionId: bookmarks.collectionId,
