@@ -156,13 +156,6 @@ export async function deleteBookmark(id: number) {
   await (db as any).delete(bookmarks).where(and(eq(bookmarks.id, id), eq(bookmarks.userId, session.user!.id!)));
 }
 
-export async function toggleFavorite(id: number, current: boolean) {
-  const session = await getSession();
-  await (db as any).update(bookmarks)
-    .set({ isFavorite: !current })
-    .where(and(eq(bookmarks.id, id), eq(bookmarks.userId, session.user!.id!)));
-}
-
 export async function getTotalBookmarkCount() {
   const session = await getSession();
   const [result] = await (db as any).select({ count: count() }).from(bookmarks)

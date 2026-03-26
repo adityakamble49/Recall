@@ -2,10 +2,10 @@
 
 import { useState, useEffect, useRef } from "react";
 import { type Bookmark, type Collection } from "@/lib/db/schema";
-import { deleteBookmark, toggleFavorite, moveBookmark, renameBookmark } from "@/app/actions";
+import { deleteBookmark, moveBookmark, renameBookmark } from "@/app/actions";
 import { useDashboard } from "@/lib/dashboard-context";
 import { formatDistanceToNow } from "@/lib/utils";
-import { MoreVertical, ArrowRight, Trash2, Star, ExternalLink, Pencil } from "lucide-react";
+import { MoreVertical, ArrowRight, Trash2, ExternalLink, Pencil } from "lucide-react";
 
 type Props = {
   bookmark: Bookmark;
@@ -47,11 +47,6 @@ export function BookmarkCard({ bookmark, variant, collections, showCollection, s
     if (!confirm(`Delete "${bookmark.title}"?`)) return;
     await deleteBookmark(bookmark.id);
     setShowMenu(false);
-    await refresh();
-  }
-
-  async function handleFavorite() {
-    await toggleFavorite(bookmark.id, bookmark.isFavorite);
     await refresh();
   }
 
@@ -124,12 +119,6 @@ export function BookmarkCard({ bookmark, variant, collections, showCollection, s
         </div>
       </a>
       <div className="flex items-center gap-1 shrink-0 ml-2">
-        <button
-          onClick={handleFavorite}
-          className={`p-1.5 transition-opacity text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-50 ${bookmark.isFavorite ? "opacity-100" : "opacity-0 group-hover:opacity-100"}`}
-        >
-          <Star className={`w-4 h-4 ${bookmark.isFavorite ? "fill-current text-zinc-900 dark:text-zinc-50" : ""}`} />
-        </button>
         <button onClick={() => setShowMenu(!showMenu)} className="p-1.5 opacity-0 group-hover:opacity-100 transition-opacity text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-50">
           <MoreVertical className="w-4 h-4" />
         </button>
