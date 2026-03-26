@@ -14,12 +14,14 @@ type Props = {
   showCollection?: boolean;
   selected?: boolean;
   onSelect?: (id: number) => void;
+  dragIds?: number[];
 };
 
-export function BookmarkCard({ bookmark, variant, collections, showCollection, selected, onSelect }: Props) {
+export function BookmarkCard({ bookmark, variant, collections, showCollection, selected, onSelect, dragIds }: Props) {
   const { refresh } = useDashboard();
   const [showMenu, setShowMenu] = useState(false);
   const [showMove, setShowMove] = useState(false);
+  const [isDragging, setIsDragging] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
   const domain = (() => { try { return new URL(bookmark.url).hostname; } catch { return bookmark.url; } })();
   const timeAgo = formatDistanceToNow(bookmark.createdAt);
@@ -94,7 +96,17 @@ export function BookmarkCard({ bookmark, variant, collections, showCollection, s
   );
 
   return (
-    <div className={`relative group flex items-center justify-between px-4 py-3 hover:bg-zinc-50 dark:hover:bg-zinc-900/50 transition-colors ${selected ? "bg-zinc-50 dark:bg-zinc-900/50" : ""}`}>
+    <div
+      draggable
+      onDragStart={(e) => {
+        const ids = dragIds && dragIds.length > 0 ? dragIds : [bookmark.id];
+        e.dataTransfer.setData("text/plain", JSON.stringify(ids));
+        e.dataTransfer.effectAllowed = "move";
+        setIsDragging(true);
+      }}
+      onDragEnd={() => setIsDragging(false)}
+      className={`relative group flex items-center justify-between px-4 py-3 hover:bg-zinc-50 dark:hover:bg-zinc-900/50 cursor-grab active:cursor-grabbing transition-all duration-150 ${selected ? "bg-zinc-50 dark:bg-zinc-900/50" : ""} ${isDragging ? "opacity-50 scale-[0.98]" : ""}`}
+      style={{ transitionTimingFunction: "cubic-bezier(0.25, 1, 0.5, 1)" }}>
       {onSelect && (
         <button onClick={() => onSelect(bookmark.id)} className="shrink-0 mr-3">
           <div className={`w-4 h-4 rounded border transition-colors ${selected ? "bg-zinc-900 dark:bg-zinc-50 border-zinc-900 dark:border-zinc-50" : "border-zinc-300 dark:border-zinc-700"}`}>

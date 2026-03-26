@@ -31,6 +31,8 @@ export function DashboardContent({ collections: initialCollections, allBookmarks
   const [showTrash, setShowTrash] = useState(false);
   const [selectedIds, setSelectedIds] = useState<Set<number>>(new Set());
   const [selectMode, setSelectMode] = useState(false);
+  const [dragOverId, setDragOverId] = useState<number | null>(null);
+  const [dropSuccessId, setDropSuccessId] = useState<number | null>(null);
   const [showAddForm, setShowAddForm] = useState(false);
   const [showNewCollection, setShowNewCollection] = useState(false);
 
@@ -171,6 +173,21 @@ export function DashboardContent({ collections: initialCollections, allBookmarks
 
   const activeCollection = collections.find((c) => c.id === activeId);
 
+  async function handleDrop(collectionId: number, e: React.DragEvent) {
+    e.preventDefault();
+    setDragOverId(null);
+    try {
+      const ids: number[] = JSON.parse(e.dataTransfer.getData("text/plain"));
+      if (ids.length === 0) return;
+      setDropSuccessId(collectionId);
+      setTimeout(() => setDropSuccessId(null), 300);
+      await bulkMoveBookmarks(ids, collectionId);
+      setSelectedIds(new Set());
+      setSelectMode(false);
+      await refresh();
+    } catch {}
+  }
+
   return (
     <DashboardProvider value={{ bookmarks, collections, refresh }}>
       <p className="text-xs font-medium text-zinc-400 uppercase tracking-widest mb-2 font-mono">Dashboard</p>
@@ -202,14 +219,23 @@ export function DashboardContent({ collections: initialCollections, allBookmarks
             </button>
 
             {collections.map((col) => (
-              <div key={col.id} className="group relative">
+              <div
+                key={col.id}
+                className="group relative"
+                onDragOver={(e) => { e.preventDefault(); setDragOverId(col.id); }}
+                onDragLeave={() => setDragOverId(null)}
+                onDrop={(e) => handleDrop(col.id, e)}
+              >
                 <button
                   onClick={() => { setActiveId(col.id); setSelectedIds(new Set()); setSelectMode(false); }}
-                  className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl text-left transition-colors ${
-                    activeId === col.id
-                      ? "bg-zinc-900 dark:bg-zinc-50 text-white dark:text-zinc-900"
-                      : "border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-950 hover:border-zinc-300 dark:hover:border-zinc-700"
+                  className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl text-left transition-all duration-200 border ${
+                    dragOverId === col.id || dropSuccessId === col.id
+                      ? "border-zinc-900 dark:border-zinc-50 bg-zinc-100 dark:bg-zinc-900"
+                      : activeId === col.id
+                        ? "border-transparent bg-zinc-900 dark:bg-zinc-50 text-white dark:text-zinc-900"
+                        : "border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-950 hover:border-zinc-300 dark:hover:border-zinc-700"
                   }`}
+                  style={{ transitionTimingFunction: "cubic-bezier(0.25, 1, 0.5, 1)" }}
                 >
                   <FolderOpen className="w-4 h-4" />
                   <span className="text-sm font-medium flex-1 truncate">{col.name}</span>
@@ -382,7 +408,7 @@ export function DashboardContent({ collections: initialCollections, allBookmarks
           ) : (
             <div className="border border-zinc-200 dark:border-zinc-800 rounded-xl bg-white dark:bg-zinc-950 divide-y divide-zinc-100 dark:divide-zinc-800 overflow-visible">
               {filtered.map((bm) => (
-                <BookmarkCard key={bm.id} bookmark={bm} variant="list" collections={collections} showCollection={activeId === null} selected={selectedIds.has(bm.id)} onSelect={selectMode ? toggleSelect : undefined} />
+                <BookmarkCard key={bm.id} bookmark={bm} variant="list" collections={collections} showCollection={activeId === null} selected={selectedIds.has(bm.id)} onSelect={selectMode ? toggleSelect : undefined} dragIds={selectMode && selectedIds.has(bm.id) ? [...selectedIds] : undefined} />
               ))}
             </div>
           )}
