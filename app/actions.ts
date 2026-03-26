@@ -33,6 +33,7 @@ export async function getCollections() {
 
 export async function getCollectionsWithCount() {
   const session = await getSession();
+  await getOrCreateDefaultCollection(session.user!.id!);
   const cols = await getCollections();
   const counts = await (db as any).select({
     collectionId: bookmarks.collectionId,
@@ -45,9 +46,15 @@ export async function getCollectionsWithCount() {
   return cols.map((col: any) => ({ ...col, bookmarkCount: countMap.get(col.id) ?? 0 }));
 }
 
-export async function createCollection(data: { name: string; description?: string; icon?: string; color?: string }) {
+export async function createCollection(data: { name: string; description?: string; icon?: string; color?: string }): Promise<{ error?: string }> {
   const session = await getSession();
-  await (db as any).insert(collections).values({ userId: session.user!.id!, ...data });
+  const userId = session.user!.id!;
+  const [existing] = await (db as any).select({ id: collections.id }).from(collections)
+    .where(and(eq(collections.userId, userId), eq(collections.name, data.name), eq(collections.isDeleted, false)))
+    .limit(1);
+  if (existing) return { error: "Collection already exists" };
+  await (db as any).insert(collections).values({ userId, ...data });
+  return {};
 }
 
 export async function deleteCollection(id: number) {

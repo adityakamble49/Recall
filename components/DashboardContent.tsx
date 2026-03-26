@@ -108,7 +108,8 @@ export function DashboardContent({ collections: initialCollections, allBookmarks
     if (!newColName.trim()) return;
     setNewColLoading(true);
     try {
-      await createCollection({ name: newColName });
+      const result = await createCollection({ name: newColName });
+      if (result.error) { alert(result.error); return; }
       setNewColName("");
       setShowNewCollection(false);
       await refresh();
