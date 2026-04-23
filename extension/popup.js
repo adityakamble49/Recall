@@ -1,5 +1,5 @@
 // ---- CONFIG ----
-const PROD_URL = "https://recall.ltd";
+const PROD_URL = "https://www.recall.ltd";
 const DEV_URL = "http://localhost:3030";
 
 const app = document.getElementById("app");
