@@ -8,7 +8,7 @@
 
 Recall is a minimalistic bookmark tracker with a web app and Chrome extension. Save, categorize, and open bookmarks as Chrome tab groups — all with surgical precision.
 
-🌐 [Live App](https://recall-ebon.vercel.app) · [Issues](https://github.com/adityakamble49/Recall/issues)
+🌐 [Live App](https://recall.ltd) · [Issues](https://github.com/adityakamble49/Recall/issues)
 
 ![](assets/screenshot-webapp.png)
 
@@ -153,7 +153,7 @@ Save links from any iOS app (Safari, Twitter, Reddit, etc.) directly to Recall u
 |---|--------|--------------|
 | 1 | **Receive input** | Accept: URLs only |
 | 2 | **Text** | Paste your Recall API token |
-| 3 | **Get Contents of URL** | URL: `https://recall-ebon.vercel.app/api/bookmarks` — Method: POST — Header: `Authorization: Bearer <Text>` — Body (JSON): `url` = Shortcut Input, `title` = Shortcut Input |
+| 3 | **Get Contents of URL** | URL: `https://recall.ltd/api/bookmarks` — Method: POST — Header: `Authorization: Bearer <Text>` — Body (JSON): `url` = Shortcut Input, `title` = Shortcut Input |
 | 4 | **Show Notification** | `✓ Saved to Recall` |
 
 3. Tap **ⓘ** at the bottom → enable **Show in Share Sheet**
