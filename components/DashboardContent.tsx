@@ -408,7 +408,7 @@ export function DashboardContent({ collections: initialCollections, allBookmarks
           ) : (
             <div className="border border-border rounded-xl bg-surface divide-y divide-border overflow-visible shadow-card">
               {filtered.map((bm) => (
-                <BookmarkCard key={bm.id} bookmark={bm} variant="list" collections={collections} showCollection={activeId === null} selected={selectedIds.has(bm.id)} onSelect={selectMode ? toggleSelect : undefined} dragIds={selectMode && selectedIds.has(bm.id) ? [...selectedIds] : undefined} />
+                <BookmarkCard key={bm.id} bookmark={bm} collections={collections} showCollection={activeId === null} selected={selectedIds.has(bm.id)} onSelect={selectMode ? toggleSelect : undefined} dragIds={selectMode && selectedIds.has(bm.id) ? [...selectedIds] : undefined} />
               ))}
             </div>
           )}
