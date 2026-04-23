@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Inter, JetBrains_Mono } from "next/font/google";
 import "./globals.css";
 import { TopBar } from "@/components/TopBar";
+import { ThemeProvider } from "@/components/ThemeProvider";
 
 const inter = Inter({
   variable: "--font-inter",
@@ -24,12 +25,14 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
-      <body className={`${inter.variable} ${jetbrainsMono.variable} font-sans antialiased bg-zinc-50 dark:bg-black text-zinc-900 dark:text-zinc-50`}>
-        <TopBar />
-        <main className="pt-14 min-h-screen">
-          {children}
-        </main>
+    <html lang="en" suppressHydrationWarning>
+      <body className={`${inter.variable} ${jetbrainsMono.variable} font-sans antialiased`}>
+        <ThemeProvider>
+          <TopBar />
+          <main className="pt-14 min-h-screen">
+            {children}
+          </main>
+        </ThemeProvider>
       </body>
     </html>
   );

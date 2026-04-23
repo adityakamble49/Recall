@@ -1,12 +1,72 @@
 @import "tailwindcss";
 
+:root {
+  --brand: #3b82f6;
+  --destructive: #ef4444;
+  --font-sans: 'Inter', ui-sans-serif, system-ui, sans-serif;
+  --font-mono: 'JetBrains Mono', ui-monospace, monospace;
+}
+
+[data-theme="dark"] {
+  --void: #0d0e12;
+  --surface: #16181d;
+  --raised: #21242b;
+  --border: #2d3139;
+  --border-hover: #3e444e;
+  --text-primary: #f0f1f4;
+  --text-secondary: #9499a6;
+  --text-muted: #5e6573;
+  --nav-bg: rgba(13,14,18,0.85);
+  --card-shadow: none;
+  --card-border: 1px solid var(--border);
+  --overlay-bg: rgba(0,0,0,0.65);
+  --focus-ring: rgba(240,241,244,0.12);
+  --floating-shadow: 0 10px 25px -5px rgba(0,0,0,0.5);
+}
+
+[data-theme="light"] {
+  --void: #fafafa;
+  --surface: #ffffff;
+  --raised: #f4f4f5;
+  --border: #e4e4e7;
+  --border-hover: #d4d4d8;
+  --text-primary: #18181b;
+  --text-secondary: #71717a;
+  --text-muted: #a1a1aa;
+  --nav-bg: rgba(255,255,255,0.85);
+  --card-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px -1px rgba(0, 0, 0, 0.1);
+  --card-border: none;
+  --overlay-bg: rgba(0,0,0,0.15);
+  --focus-ring: rgba(24,24,27,0.10);
+  --floating-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -4px rgba(0, 0, 0, 0.1);
+}
+
 @theme inline {
   --font-sans: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
   --font-mono: var(--font-mono), ui-monospace, monospace;
+
+  /* Semantic Colors */
+  --color-void: var(--void);
+  --color-surface: var(--surface);
+  --color-raised: var(--raised);
+  --color-border: var(--border);
+  --color-border-hover: var(--border-hover);
+  --color-primary: var(--text-primary);
+  --color-secondary: var(--text-secondary);
+  --color-muted: var(--text-muted);
+  --color-brand: var(--brand);
+  --color-destructive: var(--destructive);
+
+  /* Shadows */
+  --shadow-floating: var(--floating-shadow);
+  --shadow-card: var(--card-shadow);
 }
 
 body {
+  background: var(--void);
+  color: var(--text-primary);
   -webkit-font-smoothing: antialiased;
+  transition: background 0.2s, color 0.2s;
 }
 
 button, [role="button"] {

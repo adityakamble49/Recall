@@ -190,9 +190,9 @@ export function DashboardContent({ collections: initialCollections, allBookmarks
 
   return (
     <DashboardProvider value={{ bookmarks, collections, refresh }}>
-      <p className="text-xs font-medium text-zinc-400 uppercase tracking-widest mb-2 font-mono">Dashboard</p>
-      <h1 className="text-4xl md:text-5xl font-bold tracking-tight mb-8">
-        <span className="font-mono">{bookmarks.length}</span> <span className="text-zinc-300 dark:text-zinc-700">bookmarks</span>
+      <p className="text-xs font-medium text-muted uppercase tracking-widest mb-2 font-mono">Dashboard</p>
+      <h1 className="text-4xl md:text-5xl font-bold tracking-tight mb-8 text-primary">
+        <span className="font-mono">{bookmarks.length}</span> <span className="text-muted">bookmarks</span>
       </h1>
       <div className="mb-16">
         <InstantCapture />
@@ -201,17 +201,17 @@ export function DashboardContent({ collections: initialCollections, allBookmarks
         {/* Left: Collections */}
         <aside>
           <div className="flex items-center justify-between mb-5">
-            <h2 className="text-xs font-semibold font-mono uppercase tracking-wider text-zinc-400">Collections</h2>
+            <h2 className="text-xs font-semibold font-mono uppercase tracking-wider text-muted">Collections</h2>
             <MergeCollections collections={collections} />
           </div>
 
           <div className="space-y-1">
             <button
               onClick={() => { setActiveId(null); setSelectedIds(new Set()); setSelectMode(false); }}
-              className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl text-left transition-colors ${
+              className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl text-left transition-colors border ${
                 activeId === null
-                  ? "bg-zinc-900 dark:bg-zinc-50 text-white dark:text-zinc-900"
-                  : "border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-950 hover:border-zinc-300 dark:hover:border-zinc-700"
+                  ? "bg-primary text-void border-primary"
+                  : "border-border bg-surface hover:border-border-hover text-secondary hover:text-primary"
               }`}
             >
               <BookmarkIcon className="w-4 h-4" />
@@ -230,16 +230,16 @@ export function DashboardContent({ collections: initialCollections, allBookmarks
                   onClick={() => { setActiveId(col.id); setSelectedIds(new Set()); setSelectMode(false); }}
                   className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl text-left transition-all duration-200 border ${
                     dragOverId === col.id || dropSuccessId === col.id
-                      ? "border-zinc-900 dark:border-zinc-50 bg-zinc-100 dark:bg-zinc-900"
+                      ? "border-primary bg-raised"
                       : activeId === col.id
-                        ? "border-transparent bg-zinc-900 dark:bg-zinc-50 text-white dark:text-zinc-900"
-                        : "border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-950 hover:border-zinc-300 dark:hover:border-zinc-700"
+                        ? "border-primary bg-primary text-void"
+                        : "border-border bg-surface hover:border-border-hover text-secondary hover:text-primary"
                   }`}
                   style={{ transitionTimingFunction: "cubic-bezier(0.25, 1, 0.5, 1)" }}
                 >
                   <FolderOpen className="w-4 h-4" />
                   <span className="text-sm font-medium flex-1 truncate">{col.name}</span>
-                  <span className={`text-xs tabular-nums font-mono ${activeId === col.id ? "opacity-70" : "text-zinc-400"}`}>
+                  <span className={`text-xs tabular-nums font-mono ${activeId === col.id ? "opacity-70" : "text-muted"}`}>
                     {col.bookmarkCount}
                   </span>
                 </button>
@@ -247,14 +247,14 @@ export function DashboardContent({ collections: initialCollections, allBookmarks
                   <div className="absolute right-12 top-1/2 -translate-y-1/2 flex items-center gap-0.5">
                     <button
                       onClick={() => handleRenameCollection(col.id, col.name)}
-                      className="p-1 text-white/60 hover:text-white dark:text-zinc-900/60 dark:hover:text-zinc-900"
+                      className="p-1 text-void/60 hover:text-void"
                       title="Rename collection"
                     >
                       <Pencil className="w-3.5 h-3.5" />
                     </button>
                     <button
                       onClick={() => handleDeleteCollection(col.id)}
-                      className="p-1 text-white/60 hover:text-white dark:text-zinc-900/60 dark:hover:text-zinc-900"
+                      className="p-1 text-void/60 hover:text-void"
                       title="Delete collection"
                     >
                       <Trash2 className="w-3.5 h-3.5" />
@@ -271,19 +271,19 @@ export function DashboardContent({ collections: initialCollections, allBookmarks
                   value={newColName}
                   onChange={(e) => setNewColName(e.target.value)}
                   placeholder="Collection name"
-                  className="flex-1 px-3 py-2 text-base md:text-sm border border-zinc-200 dark:border-zinc-800 rounded-lg bg-white dark:bg-zinc-950 focus:outline-none focus:ring-2 focus:ring-zinc-900 dark:focus:ring-zinc-50"
+                  className="flex-1 px-3 py-2 text-base md:text-sm border border-border rounded-lg bg-raised text-primary focus:outline-none focus:ring-2 focus:ring-primary/20"
                 />
-                <button type="submit" disabled={newColLoading} className="px-3 py-2 bg-zinc-900 dark:bg-zinc-50 text-white dark:text-zinc-900 rounded-lg text-sm font-medium disabled:opacity-50">
+                <button type="submit" disabled={newColLoading} className="px-3 py-2 bg-primary text-void rounded-lg text-sm font-medium disabled:opacity-50">
                   Add
                 </button>
-                <button type="button" onClick={() => { setShowNewCollection(false); setNewColName(""); }} className="p-2 text-zinc-400">
+                <button type="button" onClick={() => { setShowNewCollection(false); setNewColName(""); }} className="p-2 text-muted hover:text-primary transition-colors">
                   <X className="w-4 h-4" />
                 </button>
               </form>
             ) : (
               <button
                 onClick={() => setShowNewCollection(true)}
-                className="w-full flex items-center justify-center gap-2 px-4 py-3 border-2 border-dashed border-zinc-200 dark:border-zinc-800 rounded-xl text-sm text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-50 hover:border-zinc-300 transition-colors mt-2"
+                className="w-full flex items-center justify-center gap-2 px-4 py-3 border-2 border-dashed border-border rounded-xl text-sm text-muted hover:text-primary hover:border-border-hover transition-colors mt-2"
               >
                 <Plus className="w-4 h-4" /> New collection
               </button>
@@ -291,10 +291,10 @@ export function DashboardContent({ collections: initialCollections, allBookmarks
           </div>
 
           {deletedCollections.length > 0 && (
-            <div className="mt-6">
+            <div className="mt-6 px-1">
               <button
                 onClick={() => setShowTrash(!showTrash)}
-                className="flex items-center gap-1.5 text-xs font-semibold font-mono uppercase tracking-wider text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-300 transition-colors"
+                className="flex items-center gap-1.5 text-xs font-semibold font-mono uppercase tracking-wider text-muted hover:text-secondary transition-colors"
               >
                 <Trash2 className="w-3 h-3" />
                 Trash ({deletedCollections.length})
@@ -303,12 +303,12 @@ export function DashboardContent({ collections: initialCollections, allBookmarks
               {showTrash && (
                 <div className="space-y-1 mt-2">
                   {deletedCollections.map((col) => (
-                    <div key={col.id} className="flex items-center gap-2 px-3 py-2 rounded-lg border border-zinc-200 dark:border-zinc-800 bg-zinc-50 dark:bg-zinc-900 text-sm text-zinc-500">
+                    <div key={col.id} className="flex items-center gap-2 px-3 py-2 rounded-lg border border-border bg-raised text-sm text-secondary">
                       <span className="flex-1 truncate">{col.name}</span>
-                      <button onClick={() => handleRestore(col.id)} className="p-1 hover:text-zinc-900 dark:hover:text-zinc-50" title="Restore">
+                      <button onClick={() => handleRestore(col.id)} className="p-1 hover:text-primary transition-colors" title="Restore">
                         <Undo2 className="w-3.5 h-3.5" />
                       </button>
-                      <button onClick={() => handlePermanentDelete(col.id)} className="p-1 hover:text-red-600" title="Delete permanently">
+                      <button onClick={() => handlePermanentDelete(col.id)} className="p-1 hover:text-destructive transition-colors" title="Delete permanently">
                         <Trash2 className="w-3.5 h-3.5" />
                       </button>
                     </div>
@@ -321,12 +321,12 @@ export function DashboardContent({ collections: initialCollections, allBookmarks
 
         {/* Right: Bookmarks */}
         <section className="min-w-0">
-          <div className="flex items-center justify-between mb-5">
+          <div className="flex items-center justify-between mb-5 px-1">
             <div className="flex items-center gap-3">
               {activeCollection ? (
-                <h2 className="text-sm font-semibold">{activeCollection.name}</h2>
+                <h2 className="text-sm font-semibold text-primary">{activeCollection.name}</h2>
               ) : (
-                <h2 className="text-xs font-semibold font-mono uppercase tracking-wider text-zinc-400">Recent</h2>
+                <h2 className="text-xs font-semibold font-mono uppercase tracking-wider text-muted">Recent</h2>
               )}
             </div>
             <div className="flex items-center gap-2">
@@ -334,8 +334,8 @@ export function DashboardContent({ collections: initialCollections, allBookmarks
                 onClick={() => { setSelectMode(!selectMode); if (selectMode) setSelectedIds(new Set()); }}
                 className={`flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium rounded-md transition-colors ${
                   selectMode
-                    ? "bg-zinc-200 dark:bg-zinc-800 text-zinc-900 dark:text-zinc-50"
-                    : "text-zinc-500 hover:text-zinc-900 dark:hover:text-zinc-50 border border-zinc-200 dark:border-zinc-800 hover:border-zinc-300"
+                    ? "bg-raised text-primary"
+                    : "text-secondary hover:text-primary border border-border hover:border-border-hover"
                 }`}
               >
                 <CheckSquare className="w-4 h-4" />
@@ -345,8 +345,8 @@ export function DashboardContent({ collections: initialCollections, allBookmarks
                 onClick={() => setShowAddForm(!showAddForm)}
                 className={`flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium rounded-md transition-colors ${
                   showAddForm
-                    ? "bg-zinc-200 dark:bg-zinc-800 text-zinc-900 dark:text-zinc-50"
-                    : "bg-zinc-900 dark:bg-zinc-50 text-white dark:text-zinc-900 hover:bg-zinc-800 dark:hover:bg-zinc-200"
+                    ? "bg-raised text-primary"
+                    : "bg-primary text-void hover:opacity-90 transition-opacity"
                 }`}
               >
                 {showAddForm ? <X className="w-4 h-4" /> : <Plus className="w-4 h-4" />}
@@ -356,7 +356,7 @@ export function DashboardContent({ collections: initialCollections, allBookmarks
           </div>
 
           {showAddForm && (
-            <form onSubmit={handleAddBookmark} className="mb-6 p-4 border border-zinc-200 dark:border-zinc-800 rounded-xl bg-white dark:bg-zinc-950 space-y-3">
+            <form onSubmit={handleAddBookmark} className="mb-6 p-4 border border-border rounded-xl bg-surface space-y-3 shadow-card">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                 <input
                   autoFocus
@@ -365,7 +365,7 @@ export function DashboardContent({ collections: initialCollections, allBookmarks
                   onChange={(e) => setAddUrl(e.target.value)}
                   placeholder="URL"
                   required
-                  className="px-3 py-2 text-base md:text-sm border border-zinc-200 dark:border-zinc-800 rounded-lg bg-zinc-50 dark:bg-zinc-900 focus:outline-none focus:ring-2 focus:ring-zinc-900 dark:focus:ring-zinc-50 font-mono"
+                  className="px-3 py-2 text-base md:text-sm border border-border rounded-lg bg-raised text-primary focus:outline-none focus:ring-2 focus:ring-primary/20 font-mono"
                 />
                 <input
                   type="text"
@@ -373,14 +373,14 @@ export function DashboardContent({ collections: initialCollections, allBookmarks
                   onChange={(e) => setAddTitle(e.target.value)}
                   placeholder="Title"
                   required
-                  className="px-3 py-2 text-base md:text-sm border border-zinc-200 dark:border-zinc-800 rounded-lg bg-zinc-50 dark:bg-zinc-900 focus:outline-none focus:ring-2 focus:ring-zinc-900 dark:focus:ring-zinc-50"
+                  className="px-3 py-2 text-base md:text-sm border border-border rounded-lg bg-raised text-primary focus:outline-none focus:ring-2 focus:ring-primary/20"
                 />
               </div>
               <div className="flex items-center gap-3">
                 <select
                   value={addCollection ?? activeId ?? collections.find(c => c.isDefault)?.id ?? ""}
                   onChange={(e) => setAddCollection(e.target.value ? parseInt(e.target.value) : undefined)}
-                  className="flex-1 px-3 py-2 text-base md:text-sm border border-zinc-200 dark:border-zinc-800 rounded-lg bg-zinc-50 dark:bg-zinc-900 focus:outline-none focus:ring-2 focus:ring-zinc-900 dark:focus:ring-zinc-50 appearance-none bg-[url('data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2212%22%20height%3D%2212%22%20viewBox%3D%220%200%2024%2024%22%20fill%3D%22none%22%20stroke%3D%22%2371717a%22%20stroke-width%3D%222%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Cpath%20d%3D%22m6%209%206%206%206-6%22%2F%3E%3C%2Fsvg%3E')] bg-no-repeat bg-[right_10px_center] pr-8"
+                  className="flex-1 px-3 py-2 text-base md:text-sm border border-border rounded-lg bg-raised text-primary focus:outline-none focus:ring-2 focus:ring-primary/20 appearance-none bg-[url('data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2212%22%20height%3D%2212%22%20viewBox%3D%220%200%2024%2024%22%20fill%3D%22none%22%20stroke%3D%22%2371717a%22%20stroke-width%3D%222%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Cpath%20d%3D%22m6%209%206%206%206-6%22%2F%3E%3C%2Fsvg%3E')] bg-no-repeat bg-[right_10px_center] pr-8"
                 >
                   {collections.map((c) => (
                     <option key={c.id} value={c.id}>{c.name}</option>
@@ -389,24 +389,24 @@ export function DashboardContent({ collections: initialCollections, allBookmarks
                 <button
                   type="submit"
                   disabled={addLoading}
-                  className="px-4 py-2 bg-zinc-900 dark:bg-zinc-50 text-white dark:text-zinc-900 text-sm font-medium rounded-lg disabled:opacity-50"
+                  className="px-4 py-2 bg-primary text-void text-sm font-medium rounded-lg disabled:opacity-50"
                 >
                   {addLoading ? "Saving..." : "Save"}
                 </button>
               </div>
-              {addError && <p className="text-xs font-medium text-red-600">{addError}</p>}
+              {addError && <p className="text-xs font-medium text-destructive">{addError}</p>}
             </form>
           )}
 
           {filtered.length === 0 ? (
-            <div className="flex flex-col items-center justify-center py-20 border-2 border-dashed border-zinc-200 dark:border-zinc-800 rounded-xl">
-              <BookmarkIcon className="w-10 h-10 text-zinc-200 dark:text-zinc-800 mb-4" />
-              <p className="text-sm text-zinc-400">
+            <div className="flex flex-col items-center justify-center py-20 border-2 border-dashed border-border rounded-xl bg-void/50">
+              <BookmarkIcon className="w-10 h-10 text-muted/20 mb-4" />
+              <p className="text-sm text-muted">
                 {activeCollection ? "No bookmarks in this collection" : "No bookmarks yet"}
               </p>
             </div>
           ) : (
-            <div className="border border-zinc-200 dark:border-zinc-800 rounded-xl bg-white dark:bg-zinc-950 divide-y divide-zinc-100 dark:divide-zinc-800 overflow-visible">
+            <div className="border border-border rounded-xl bg-surface divide-y divide-border overflow-visible shadow-card">
               {filtered.map((bm) => (
                 <BookmarkCard key={bm.id} bookmark={bm} variant="list" collections={collections} showCollection={activeId === null} selected={selectedIds.has(bm.id)} onSelect={selectMode ? toggleSelect : undefined} dragIds={selectMode && selectedIds.has(bm.id) ? [...selectedIds] : undefined} />
               ))}
@@ -416,19 +416,19 @@ export function DashboardContent({ collections: initialCollections, allBookmarks
       </div>
 
       {selectedIds.size > 0 && (
-        <div className="fixed bottom-6 left-1/2 -translate-x-1/2 flex items-center gap-3 px-4 py-3 bg-zinc-900 dark:bg-zinc-50 text-white dark:text-zinc-900 rounded-xl shadow-lg z-50">
-          <span className="text-sm font-mono">{selectedIds.size} selected</span>
+        <div className="fixed bottom-6 left-1/2 -translate-x-1/2 flex items-center gap-3 px-4 py-3 bg-primary text-void rounded-xl shadow-floating z-50 border border-primary/10">
+          <span className="text-sm font-mono font-bold">{selectedIds.size} selected</span>
           <select
             onChange={async (e) => { if (e.target.value) { await handleBulkMove(parseInt(e.target.value)); } e.target.value = ""; }}
-            className="px-2 py-1 text-xs rounded-md bg-zinc-800 dark:bg-zinc-200 text-white dark:text-zinc-900 border-none"
+            className="px-2 py-1 text-xs rounded-md bg-void/10 text-void border-none focus:outline-none"
           >
             <option value="">Move to...</option>
-            {collections.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
+            {collections.map(c => <option key={c.id} value={c.id} className="text-primary">{c.name}</option>)}
           </select>
-          <button onClick={handleBulkDelete} className="px-3 py-1 text-xs font-medium bg-red-600 text-white rounded-md hover:bg-red-700">
+          <button onClick={handleBulkDelete} className="px-3 py-1 text-xs font-medium bg-destructive text-void rounded-md hover:opacity-90">
             Delete
           </button>
-          <button onClick={() => setSelectedIds(new Set())} className="px-2 py-1 text-xs text-zinc-400 hover:text-white dark:text-zinc-500 dark:hover:text-zinc-900">
+          <button onClick={() => setSelectedIds(new Set())} className="px-2 py-1 text-xs text-void/50 hover:text-void transition-colors">
             <X className="w-4 h-4" />
           </button>
         </div>

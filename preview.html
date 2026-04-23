@@ -1,0 +1,349 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Recall — Design System Preview</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  /* ============================================
+     SINGLE SOURCE OF TRUTH — COLOR PALETTE
+     ============================================ */
+  :root {
+    --brand: #3b82f6;
+    --destructive: #ef4444;
+    --font-sans: 'Inter', ui-sans-serif, system-ui, sans-serif;
+    --font-mono: 'JetBrains Mono', ui-monospace, SFMono-Regular, monospace;
+  }
+
+  /* Restoration of Original Recall aesthetic */
+  [data-theme="dark"] {
+    --void: #0d0e12;
+    --surface: #16181d;
+    --raised: #21242b;
+    --border: #2d3139;
+    --border-hover: #3e444e;
+    --text-primary: #f0f1f4;
+    --text-secondary: #9499a6;
+    --text-muted: #5e6573;
+    --nav-bg: rgba(13,14,18,0.85);
+    --card-shadow: none;
+    --card-border: 1px solid var(--border);
+    --overlay-bg: rgba(0,0,0,0.65);
+    --focus-ring: rgba(240,241,244,0.12);
+    --floating-shadow: 0 10px 25px -5px rgba(0,0,0,0.5);
+  }
+
+  [data-theme="light"] {
+    --void: #fafafa;
+    --surface: #ffffff;
+    --raised: #f4f4f5;
+    --border: #e4e4e7;
+    --border-hover: #d4d4d8;
+    --text-primary: #18181b;
+    --text-secondary: #71717a;
+    --text-muted: #a1a1aa;
+    --nav-bg: rgba(255,255,255,0.85);
+    --card-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px -1px rgba(0, 0, 0, 0.1);
+    --card-border: 1px solid var(--border);
+    --overlay-bg: rgba(0,0,0,0.15);
+    --focus-ring: rgba(24,24,27,0.10);
+    --floating-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -4px rgba(0, 0, 0, 0.1);
+  }
+
+  /* ============================================
+     BASE STYLES
+     ============================================ */
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { background: var(--void); color: var(--text-primary); font-family: var(--font-sans); font-size: 14px; line-height: 1.50; -webkit-font-smoothing: antialiased; transition: background 0.2s, color 0.2s; }
+
+  .nav { position: sticky; top: 0; z-index: 100; display: flex; align-items: center; justify-content: space-between; padding: 0 32px; height: 56px; background: var(--nav-bg); backdrop-filter: blur(12px); border-bottom: 1px solid var(--border); }
+  .nav-brand { font-size: 16px; font-weight: 700; letter-spacing: -0.025em; display: flex; align-items: center; gap: 8px; font-family: var(--font-mono); color: var(--text-primary); }
+  .nav-right { display: flex; align-items: center; gap: 12px; }
+  .theme-toggle { width: 32px; height: 32px; border-radius: 8px; border: 1px solid var(--border); background: var(--surface); cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 14px; transition: 0.15s; }
+  .theme-toggle:hover { border-color: var(--border-hover); background: var(--raised); }
+  .nav-avatar { width: 28px; height: 28px; border-radius: 50%; background: var(--raised); border: 1px solid var(--border); display: flex; align-items: center; justify-content: center; font-size: 12px; }
+
+  .hero { padding: 80px 32px 64px; text-align: left; max-width: 1100px; margin: 0 auto; }
+  .hero h1 { font-size: 36px; font-weight: 700; line-height: 1.2; letter-spacing: -0.025em; margin-bottom: 8px; }
+  .hero p { font-size: 16px; font-weight: 400; color: var(--text-secondary); max-width: 600px; margin-bottom: 32px; }
+
+  .section { padding: 48px 32px; max-width: 1100px; margin: 0 auto; }
+  .section-label { font-family: var(--font-mono); font-size: 12px; font-weight: 500; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 8px; }
+  .section-title { font-size: 30px; font-weight: 700; letter-spacing: -0.025em; margin-bottom: 32px; }
+  .section-divider { border: none; border-top: 1px solid var(--border); margin: 0; }
+  .subsection-label { font-family: var(--font-mono); font-size: 12px; font-weight: 600; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.05em; margin: 24px 0 12px; }
+
+  /* Utility Components */
+  .btn-primary { display: inline-block; background: var(--text-primary); color: var(--void); padding: 8px 16px; border-radius: 8px; border: none; font-family: var(--font-sans); font-size: 14px; font-weight: 500; cursor: pointer; transition: opacity 0.15s; }
+  .btn-primary:hover { opacity: 0.85; }
+  .btn-secondary { display: inline-block; background: var(--surface); color: var(--text-primary); padding: 8px 16px; border-radius: 8px; border: 1px solid var(--border); font-family: var(--font-sans); font-size: 14px; font-weight: 500; cursor: pointer; transition: 0.15s; }
+  .btn-secondary:hover { border-color: var(--border-hover); background: var(--raised); }
+  .btn-icon { width: 32px; height: 32px; border-radius: 6px; border: none; background: transparent; color: var(--text-secondary); cursor: pointer; display: flex; align-items: center; justify-content: center; transition: 0.15s; }
+  .btn-icon:hover { background: var(--raised); color: var(--text-primary); }
+
+  /* Recall Components */
+  .capture-bar { position: relative; margin: 0; }
+  .capture-input { width: 100%; height: 44px; padding: 0 48px 0 16px; background: var(--surface); border: 1px solid var(--border); border-radius: 12px; font-family: var(--font-sans); font-size: 15px; color: var(--text-primary); outline: none; transition: 0.15s; }
+  .capture-input:focus { border-color: var(--text-secondary); box-shadow: 0 0 0 2px var(--focus-ring); }
+  .capture-btn { position: absolute; right: 6px; top: 6px; width: 32px; height: 32px; background: var(--text-primary); color: var(--void); border: none; border-radius: 8px; cursor: pointer; display: flex; align-items: center; justify-content: center; }
+
+  .dashboard-grid { display: grid; grid-template-columns: 240px 1fr; gap: 40px; }
+  
+  .sidebar-item { display: flex; align-items: center; gap: 10px; padding: 10px 12px; border-radius: 10px; color: var(--text-secondary); cursor: pointer; transition: 0.15s; font-size: 14px; border: 1px solid transparent; }
+  .sidebar-item:hover { background: var(--surface); color: var(--text-primary); border-color: var(--border); }
+  .sidebar-item.active { background: var(--raised); color: var(--text-primary); font-weight: 600; }
+  .sidebar-item-count { margin-left: auto; font-family: var(--font-mono); font-size: 11px; opacity: 0.7; }
+
+  .bookmark-list { display: flex; flex-direction: column; background: var(--surface); border: 1px solid var(--border); box-shadow: var(--card-shadow); border-radius: 12px; overflow: hidden; }
+  .bookmark-row { display: flex; align-items: center; justify-content: space-between; padding: 12px 16px; transition: 0.1s; border-bottom: 1px solid var(--border); cursor: pointer; }
+  .bookmark-row:last-child { border-bottom: none; }
+  .bookmark-row:hover { background: var(--raised); }
+  .bookmark-info { display: flex; align-items: center; gap: 14px; min-width: 0; }
+  .bookmark-icon { width: 36px; height: 36px; border-radius: 8px; background: var(--raised); border: 1px solid var(--border); display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+  .bookmark-title { font-weight: 500; font-size: 14px; color: var(--text-primary); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin-bottom: 2px; }
+  .bookmark-meta { font-family: var(--font-mono); font-size: 11px; color: var(--text-secondary); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .bookmark-row-actions { opacity: 0; display: flex; gap: 4px; transition: 0.15s; }
+  .bookmark-row:hover .bookmark-row-actions { opacity: 1; }
+
+  /* Palette & Types */
+  .color-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 12px; }
+  .color-swatch { border-radius: 12px; overflow: hidden; border: 1px solid var(--border); background: var(--surface); }
+  .color-swatch-block { height: 72px; }
+  .color-swatch-info { padding: 10px 12px; }
+  .color-swatch-name { font-size: 13px; font-weight: 600; margin-bottom: 2px; }
+  .color-swatch-hex { font-size: 12px; color: var(--text-muted); font-family: var(--font-mono); }
+
+  /* Modal Preview */
+  .modal-overlay { background: var(--overlay-bg); backdrop-filter: blur(4px); padding: 40px; display: flex; items-center; justify-content: center; border-radius: 16px; border: 1px solid var(--border); margin-top: 24px; }
+  .modal-content { background: var(--surface); border: 1px solid var(--border-hover); border-radius: 16px; box-shadow: var(--floating-shadow); width: 100%; max-width: 400px; overflow: hidden; }
+  .modal-header { padding: 16px 20px; border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; }
+  .modal-body { padding: 20px; }
+  .modal-footer { padding: 12px 20px; border-top: 1px solid var(--border); background: var(--raised); display: flex; gap: 8px; justify-content: flex-end; }
+  
+  .form-group { margin-bottom: 16px; }
+  .form-label { display: block; font-size: 12px; font-weight: 600; color: var(--text-secondary); margin-bottom: 6px; text-transform: uppercase; letter-spacing: 0.05em; }
+  .form-input { width: 100%; padding: 10px 12px; background: var(--raised); border: 1px solid var(--border); border-radius: 8px; font-family: var(--font-sans); font-size: 14px; color: var(--text-primary); outline: none; }
+  .form-input:focus { border-color: var(--text-secondary); }
+
+  .footer { padding: 64px 32px; text-align: center; color: var(--text-muted); font-family: var(--font-mono); font-size: 12px; }
+</style>
+</head>
+<body>
+
+<nav class="nav">
+  <div class="nav-brand">
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"></path></svg>
+    Recall
+  </div>
+  <div class="nav-right">
+    <button class="theme-toggle" onclick="toggleTheme()" id="themeBtn" title="Toggle theme">🌙</button>
+    <div class="nav-avatar">A</div>
+  </div>
+</nav>
+
+<header class="hero">
+  <div class="section-label">Redesigned System</div>
+  <h1>Precision Bookmarking</h1>
+  <p>A minimalist design system for software engineers, focused on high-density information and lightning-fast capture.</p>
+  
+  <div class="capture-bar">
+    <input type="text" class="capture-input" placeholder="Paste a URL to save instantly...">
+    <button class="capture-btn">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+    </button>
+  </div>
+</header>
+
+<hr class="section-divider">
+
+<section class="section" id="colors">
+  <div class="section-label">01 / Colors</div>
+  <h2 class="section-title">Semantic Palette</h2>
+  
+  <div class="subsection-label">Canvas & Surfaces</div>
+  <div class="color-grid" id="canvasSwatches"></div>
+  
+  <div class="subsection-label">Typography</div>
+  <div class="color-grid" id="textSwatches"></div>
+</section>
+
+<hr class="section-divider">
+
+<section class="section" id="typography">
+  <div class="section-label">02 / Typography</div>
+  <h2 class="section-title">Font Families</h2>
+  
+  <div style="margin-bottom: 40px;">
+    <div class="subsection-label">Inter — Interface & Content</div>
+    <div style="font-size: 32px; font-weight: 700; letter-spacing: -0.8px; margin-bottom: 8px;">The quick brown fox jumps over the lazy dog.</div>
+    <div style="font-size: 16px; color: var(--text-secondary);">Used for primary interface elements, headings, and readable body text. Optimized for screens.</div>
+  </div>
+
+  <div>
+    <div class="subsection-label">JetBrains Mono — Data & Meta</div>
+    <div style="font-family: var(--font-mono); font-size: 24px; font-weight: 500; margin-bottom: 8px;">recall_checksum: 0x1A2B3C4D</div>
+    <div style="font-family: var(--font-mono); font-size: 14px; color: var(--text-secondary);">Used for metadata, time stamps, URL domains, and tabular data.</div>
+  </div>
+</section>
+
+<hr class="section-divider">
+
+<section class="section" id="components">
+  <div class="section-label">03 / Components</div>
+  <h2 class="section-title">Core Elements</h2>
+
+  <div class="dashboard-grid">
+    <aside>
+      <div class="subsection-label">Navigation</div>
+      <div class="sidebar-item active">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="margin-right:2px"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"></path></svg>
+        All Bookmarks
+        <span class="sidebar-item-count">128</span>
+      </div>
+      <div class="sidebar-item">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path></svg>
+        Engineering
+        <span class="sidebar-item-count">42</span>
+      </div>
+      <div class="sidebar-item">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path></svg>
+        Design Ideas
+        <span class="sidebar-item-count">12</span>
+      </div>
+      <div style="margin-top: 12px; padding: 12px; border: 2px dashed var(--border); border-radius: 12px; text-align: center; color: var(--text-muted); font-size: 12px; cursor: pointer;">
+        + New Collection
+      </div>
+    </aside>
+
+    <div>
+      <div class="subsection-label">Bookmark List (High Density)</div>
+      <div class="bookmark-list">
+        <div class="bookmark-row">
+          <div class="bookmark-info">
+            <div class="bookmark-icon">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 0 0-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0 0 20 4.77 5.07 5.07 0 0 0 19.91 1S18.73.65 16 2.48a13.38 13.38 0 0 0-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 0 0 5 4.77a5.44 5.44 0 0 0-1.5 3.78c0 5.42 3.3 6.61 6.44 7a3.37 3.37 0 0 0-.94 2.58V22"></path></svg>
+            </div>
+            <div>
+              <div class="bookmark-title">lucide-react — Beautiful & consistent icons</div>
+              <div class="bookmark-meta">Engineering · 2h ago · github.com</div>
+            </div>
+          </div>
+          <div class="bookmark-row-actions">
+            <button class="btn-icon"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/><path d="m15 5 4 4"/></svg></button>
+            <button class="btn-icon"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="1"/><circle cx="12" cy="5" r="1"/><circle cx="12" cy="19" r="1"/></svg></button>
+          </div>
+        </div>
+        <div class="bookmark-row">
+          <div class="bookmark-info">
+            <div class="bookmark-icon">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><line x1="2" y1="12" x2="22" y2="12"></line><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"></path></svg>
+            </div>
+            <div>
+              <div class="bookmark-title">Next.js 15 — The React Framework for the Web</div>
+              <div class="bookmark-meta">Engineering · 1d ago · nextjs.org</div>
+            </div>
+          </div>
+          <div class="bookmark-row-actions">
+            <button class="btn-icon"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/><path d="m15 5 4 4"/></svg></button>
+            <button class="btn-icon"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="1"/><circle cx="12" cy="5" r="1"/><circle cx="12" cy="19" r="1"/></svg></button>
+          </div>
+        </div>
+        <div class="bookmark-row">
+          <div class="bookmark-info">
+            <div class="bookmark-icon">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><line x1="3" y1="9" x2="21" y2="9"></line><line x1="9" y1="21" x2="9" y2="9"></line></svg>
+            </div>
+            <div>
+              <div class="bookmark-title">Linear Method — Practices for building products</div>
+              <div class="bookmark-meta">Design Ideas · 3d ago · linear.app</div>
+            </div>
+          </div>
+          <div class="bookmark-row-actions">
+            <button class="btn-icon"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/><path d="m15 5 4 4"/></svg></button>
+            <button class="btn-icon"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="1"/><circle cx="12" cy="5" r="1"/><circle cx="12" cy="19" r="1"/></svg></button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="subsection-label">Overlays & Forms</div>
+  <div class="modal-overlay">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3 style="font-size: 14px; font-weight: 600;">Merge Collections</h3>
+        <button class="btn-icon" style="width:24px; height:24px">✕</button>
+      </div>
+      <div class="modal-body">
+        <div class="form-group">
+          <label class="form-label">New Collection Name</label>
+          <input type="text" class="form-input" value="Combined Engineering & Dev">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Source Collections</label>
+          <div style="font-size: 13px; color: var(--text-secondary); margin-top: 8px; display: flex; flex-direction: column; gap: 8px;">
+             <div style="display:flex; align-items:center; gap:8px"><input type="checkbox" checked> Engineering</div>
+             <div style="display:flex; align-items:center; gap:8px"><input type="checkbox" checked> Web Development</div>
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn-secondary">Cancel</button>
+        <button class="btn-primary">Merge</button>
+      </div>
+    </div>
+  </div>
+</section>
+
+<footer class="footer">
+  Recall Design System v2.0 · Built with Semantic CSS
+</footer>
+
+<script>
+function toggleTheme() {
+  const html = document.documentElement;
+  const isDark = html.getAttribute('data-theme') === 'dark';
+  html.setAttribute('data-theme', isDark ? 'light' : 'dark');
+  document.getElementById('themeBtn').textContent = isDark ? '☀️' : '🌙';
+  renderSwatches();
+}
+
+function cv(name) {
+  return getComputedStyle(document.documentElement).getPropertyValue(name).trim();
+}
+
+function renderSwatches() {
+  const canvas = [
+    { name: 'Void', var: '--void' },
+    { name: 'Surface', var: '--surface' },
+    { name: 'Raised', var: '--raised' },
+    { name: 'Border', var: '--border' },
+    { name: 'Border Hover', var: '--border-hover' },
+  ];
+  const text = [
+    { name: 'Primary', var: '--text-primary' },
+    { name: 'Secondary', var: '--text-secondary' },
+    { name: 'Muted', var: '--text-muted' },
+    { name: 'Brand', var: '--brand' },
+  ];
+
+  function render(id, items) {
+    const el = document.getElementById(id);
+    el.innerHTML = items.map(s => {
+      const val = cv(s.var);
+      return `<div class="color-swatch"><div class="color-swatch-block" style="background:${val}"></div><div class="color-swatch-info"><div class="color-swatch-name">${s.name}</div><div class="color-swatch-hex">${val}</div></div></div>`;
+    }).join('');
+  }
+  render('canvasSwatches', canvas);
+  render('textSwatches', text);
+}
+
+// Initial render
+setTimeout(renderSwatches, 100);
+</script>
+
+</body>
+</html>
