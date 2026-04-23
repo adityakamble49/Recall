@@ -19,6 +19,13 @@ export const metadata: Metadata = {
   description: "Minimalistic bookmark tracker for software engineers.",
 };
 
+export const viewport = {
+  themeColor: [
+    { media: "(prefers-color-scheme: light)", color: "#fafafa" },
+    { media: "(prefers-color-scheme: dark)", color: "#0d0e12" },
+  ],
+};
+
 export default function RootLayout({
   children,
 }: Readonly<{

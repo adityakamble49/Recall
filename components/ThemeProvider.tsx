@@ -26,14 +26,23 @@ export function ThemeProvider({
 
   useEffect(() => {
     const root = window.document.documentElement;
+    const isDark = theme === "dark" || (theme === "system" && window.matchMedia("(prefers-color-scheme: dark)").matches);
+    const color = isDark ? "#0d0e12" : "#fafafa";
     
     if (theme === "system") {
-      const systemTheme = window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
-      root.setAttribute("data-theme", systemTheme);
-      return;
+      root.setAttribute("data-theme", isDark ? "dark" : "light");
+    } else {
+      root.setAttribute("data-theme", theme);
     }
 
-    root.setAttribute("data-theme", theme);
+    // Update meta theme-color for mobile status bar
+    let meta = document.querySelector('meta[name="theme-color"]');
+    if (!meta) {
+      meta = document.createElement('meta');
+      (meta as HTMLMetaElement).name = "theme-color";
+      document.head.appendChild(meta);
+    }
+    (meta as HTMLMetaElement).content = color;
   }, [theme]);
 
   const value = {
