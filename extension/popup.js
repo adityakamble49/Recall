@@ -4,34 +4,50 @@ const DEV_URL = "http://localhost:3030";
 
 const app = document.getElementById("app");
 let API_BASE = PROD_URL;
+let pollTimer = null;
 
 async function getConfig() {
-  const data = await chrome.storage.local.get(["token", "apiBase"]);
+  const data = await chrome.storage.local.get(["apiBase"]);
   API_BASE = data.apiBase || PROD_URL;
   return data;
 }
 
-async function apiFetch(path, options = {}) {
-  const { token } = await chrome.storage.local.get("token");
-  return fetch(`${API_BASE}${path}`, {
-    ...options,
-    headers: {
-      "Content-Type": "application/json",
-      "Authorization": `Bearer ${token}`,
-      ...(options.headers || {}),
-    },
+function getSessionCookieName() {
+  return API_BASE.startsWith("https")
+    ? "__Secure-authjs.session-token"
+    : "authjs.session-token";
+}
+
+async function getSessionToken() {
+  const cookie = await chrome.cookies.get({
+    url: API_BASE,
+    name: getSessionCookieName(),
   });
+  return cookie?.value ?? null;
+}
+
+async function apiFetch(path, options = {}) {
+  const token = await getSessionToken();
+  const headers = { "Content-Type": "application/json", ...(options.headers || {}) };
+  if (token) headers["X-Session-Token"] = token;
+  return fetch(`${API_BASE}${path}`, { ...options, headers });
+}
+
+function stopPolling() {
+  if (pollTimer) { clearInterval(pollTimer); pollTimer = null; }
 }
 
 async function init() {
-  const { token } = await getConfig();
+  stopPolling();
+  await getConfig();
   document.getElementById("settings-toggle").onclick = showSettings;
 
-  if (!token) { showSetup(); return; }
+  const token = await getSessionToken();
+  if (!token) { showSignIn(); return; }
 
   try {
     const res = await apiFetch("/api/collections");
-    if (res.status === 401) { showSetup("Token expired or invalid."); return; }
+    if (res.status === 401) { showSignIn(); return; }
     const collections = await res.json();
     const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
     showMain(tab, collections);
@@ -41,6 +57,7 @@ async function init() {
 }
 
 function showSettings() {
+  stopPolling();
   const isDev = API_BASE === DEV_URL;
   app.innerHTML = `
     <div class="setup">
@@ -69,44 +86,33 @@ function showSettings() {
   });
 }
 
-function showSetup(message) {
+function showSignIn() {
   app.innerHTML = `
     <div class="setup">
-      <div class="icon">🔑</div>
-      <p>${message || "Connect your Recall account.<br>Go to Settings → Chrome Extension to get your token."}</p>
-      <input type="text" class="token-input" id="token-input" placeholder="Paste token here" />
-      <button class="btn-primary" id="connect-btn">Connect</button>
-      <br><br>
-      <a href="${API_BASE}/settings" target="_blank">Open Recall Settings →</a>
+      <div class="icon">🔒</div>
+      <p>Sign in to Recall to get started.</p>
+      <button class="btn-primary" id="signin-btn">Sign in with Google</button>
+      <button class="btn-secondary" id="check-btn" style="margin-top:8px;">I've signed in — check again</button>
     </div>`;
 
-  document.getElementById("connect-btn").addEventListener("click", async () => {
-    const input = document.getElementById("token-input");
-    const val = input.value.trim();
-    if (!val) return;
-    try {
-      const res = await fetch(`${API_BASE}/api/collections`, {
-        headers: { "Authorization": `Bearer ${val}` },
-      });
-      if (res.ok) {
-        await chrome.storage.local.set({ token: val });
-        init();
-      } else {
-        input.style.borderColor = "#dc2626";
-        input.placeholder = "Invalid token";
-        input.value = "";
-      }
-    } catch {
-      showError("Could not connect to Recall.");
-    }
+  document.getElementById("signin-btn").addEventListener("click", () => {
+    chrome.tabs.create({ url: API_BASE });
   });
+  document.getElementById("check-btn").addEventListener("click", () => init());
+
+  pollTimer = setInterval(async () => {
+    const token = await getSessionToken();
+    if (token) init();
+  }, 2000);
 }
 
 function showError(msg) {
+  stopPolling();
   app.innerHTML = `<div class="status error" style="padding:40px 20px;">${msg}</div>`;
 }
 
 function showMain(tab, collections) {
+  stopPolling();
   const isDev = API_BASE === DEV_URL;
   const envClass = isDev ? "dev" : "prod";
   const envLabel = isDev ? "DEV" : "PROD";
@@ -144,10 +150,7 @@ function showMain(tab, collections) {
         <div class="section-label">Recall Groups</div>
         ${colList}
       </div>` : ""}
-    <div id="tab-groups-section"></div>
-    <div class="disconnect">
-      <button id="disconnect-btn">Disconnect</button>
-    </div>`;
+    <div id="tab-groups-section"></div>`;
 
   // Save
   document.getElementById("save-btn").addEventListener("click", async () => {
@@ -245,12 +248,6 @@ function showMain(tab, collections) {
         }
       });
     });
-  });
-
-  // Disconnect
-  document.getElementById("disconnect-btn").addEventListener("click", async () => {
-    await chrome.storage.local.remove("token");
-    init();
   });
 }
 

@@ -2,7 +2,7 @@ import { auth, signOut } from "@/auth";
 import { SignInPrompt } from "@/components/SignInPrompt";
 import { ExtensionToken } from "@/components/ExtensionToken";
 import Image from "next/image";
-import { LogOut, Puzzle, User } from "lucide-react";
+import { LogOut, Key, User } from "lucide-react";
 
 export default async function SettingsPage() {
   const session = await auth();
@@ -30,15 +30,15 @@ export default async function SettingsPage() {
         </div>
       </section>
 
-      {/* Chrome Extension */}
+      {/* API Token */}
       <section className="space-y-3">
-        <h2 className="text-xs font-semibold font-mono uppercase tracking-wider text-muted px-1">Chrome Extension</h2>
+        <h2 className="text-xs font-semibold font-mono uppercase tracking-wider text-muted px-1">API Token</h2>
         <div className="p-5 border border-border rounded-xl bg-surface space-y-4 shadow-card">
           <div className="flex items-start gap-3">
-            <Puzzle className="w-5 h-5 text-muted mt-0.5" />
+            <Key className="w-5 h-5 text-muted mt-0.5" />
             <div>
-              <p className="text-sm font-medium text-primary">Connect Extension</p>
-              <p className="text-xs text-muted mt-0.5 leading-relaxed">Generate a token and paste it in the Chrome extension to sync your bookmarks.</p>
+              <p className="text-sm font-medium text-primary">Personal Access Token</p>
+              <p className="text-xs text-muted mt-0.5 leading-relaxed">Generate a token for mobile apps or third-party integrations.</p>
             </div>
           </div>
           <ExtensionToken />

@@ -3,7 +3,8 @@
   "name": "Recall - Bookmark Tracker",
   "version": "1.0.0",
   "description": "Save bookmarks and open collections as Chrome tab groups.",
-  "permissions": ["tabs", "tabGroups", "activeTab", "storage"],
+  "permissions": ["tabs", "tabGroups", "activeTab", "storage", "cookies"],
+  "host_permissions": ["https://recall.ltd/*", "http://localhost:3030/*"],
   "action": {
     "default_popup": "popup.html",
     "default_icon": {
