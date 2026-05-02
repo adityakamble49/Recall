@@ -1,0 +1,46 @@
+<svg width="100%" viewBox="0 0 690 370" xmlns="http://www.w3.org/2000/svg" role="img" style="">
+<title style="fill:rgb(0, 0, 0);stroke:none;color:rgb(0, 0, 0);stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;opacity:1;font-family:&quot;Anthropic Sans&quot;, -apple-system, &quot;system-ui&quot;, &quot;Segoe UI&quot;, sans-serif;font-size:16px;font-weight:400;text-anchor:start;dominant-baseline:auto">Recall — Bookmark Catalog banner</title>
+<desc style="fill:rgb(0, 0, 0);stroke:none;color:rgb(0, 0, 0);stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;opacity:1;font-family:&quot;Anthropic Sans&quot;, -apple-system, &quot;system-ui&quot;, &quot;Segoe UI&quot;, sans-serif;font-size:16px;font-weight:400;text-anchor:start;dominant-baseline:auto">Banner showing the Recall bookmark stack icon alongside the wordmark and tagline, with a circular icon variant on the right.</desc>
+
+<defs>
+<pattern id="hex" x="0" y="0" width="60" height="52" patternUnits="userSpaceOnUse">
+<path d="M30 2 L56 17 L56 47 L30 62 L4 47 L4 17 Z" fill="none" stroke="#1A202C" stroke-width="0.5" opacity="0.06"/>
+</pattern>
+</defs>
+
+<!-- Background with subtle hex pattern -->
+<rect x="0" y="0" width="680" height="360" fill="#F7FAFC" style="fill:rgb(247, 250, 252);stroke:none;color:rgb(0, 0, 0);stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;opacity:1;font-family:&quot;Anthropic Sans&quot;, -apple-system, &quot;system-ui&quot;, &quot;Segoe UI&quot;, sans-serif;font-size:16px;font-weight:400;text-anchor:start;dominant-baseline:auto"/>
+<rect x="0" y="0" width="680" height="360" fill="url(#hex)" style="stroke:none;color:rgb(0, 0, 0);stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;opacity:1;font-family:&quot;Anthropic Sans&quot;, -apple-system, &quot;system-ui&quot;, &quot;Segoe UI&quot;, sans-serif;font-size:16px;font-weight:400;text-anchor:start;dominant-baseline:auto"/>
+<rect x="380" y="0" width="300" height="360" fill="#EDF2F7" opacity="0.5" style="fill:rgb(237, 242, 247);stroke:none;color:rgb(0, 0, 0);stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;opacity:0.5;font-family:&quot;Anthropic Sans&quot;, -apple-system, &quot;system-ui&quot;, &quot;Segoe UI&quot;, sans-serif;font-size:16px;font-weight:400;text-anchor:start;dominant-baseline:auto"/>
+
+<!-- LEFT SIDE: icon + wordmark -->
+<!-- Icon: bookmark stack -->
+<g transform="translate(80, 70)" style="fill:rgb(0, 0, 0);stroke:none;color:rgb(0, 0, 0);stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;opacity:1;font-family:&quot;Anthropic Sans&quot;, -apple-system, &quot;system-ui&quot;, &quot;Segoe UI&quot;, sans-serif;font-size:16px;font-weight:400;text-anchor:start;dominant-baseline:auto">
+<rect x="0" y="0" width="100" height="100" rx="20" fill="#1A202C" style="fill:rgb(26, 32, 44);stroke:none;color:rgb(0, 0, 0);stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;opacity:1;font-family:&quot;Anthropic Sans&quot;, -apple-system, &quot;system-ui&quot;, &quot;Segoe UI&quot;, sans-serif;font-size:16px;font-weight:400;text-anchor:start;dominant-baseline:auto"/>
+<path d="M26 17 L57 17 Q60 17 60 20 L60 70 L41 59 L22 70 L22 20 Q22 17 26 17 Z" fill="#718096" style="fill:rgb(113, 128, 150);stroke:none;color:rgb(0, 0, 0);stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;opacity:1;font-family:&quot;Anthropic Sans&quot;, -apple-system, &quot;system-ui&quot;, &quot;Segoe UI&quot;, sans-serif;font-size:16px;font-weight:400;text-anchor:start;dominant-baseline:auto"/>
+<path d="M37 24 L68 24 Q71 24 71 27 L71 77 L52 66 L33 77 L33 27 Q33 24 37 24 Z" fill="#A0AEC0" style="fill:rgb(160, 174, 192);stroke:none;color:rgb(0, 0, 0);stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;opacity:1;font-family:&quot;Anthropic Sans&quot;, -apple-system, &quot;system-ui&quot;, &quot;Segoe UI&quot;, sans-serif;font-size:16px;font-weight:400;text-anchor:start;dominant-baseline:auto"/>
+<path d="M48 31 L79 31 Q82 31 82 34 L82 84 L63 73 L44 84 L44 34 Q48 31 48 31 Z" fill="#F7FAFC" style="fill:rgb(247, 250, 252);stroke:none;color:rgb(0, 0, 0);stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;opacity:1;font-family:&quot;Anthropic Sans&quot;, -apple-system, &quot;system-ui&quot;, &quot;Segoe UI&quot;, sans-serif;font-size:16px;font-weight:400;text-anchor:start;dominant-baseline:auto"/>
+</g>
+
+<!-- Wordmark "Recall" -->
+<text x="80" y="225" font-family="Inter, system-ui, -apple-system, sans-serif" font-size="64" font-weight="700" fill="#1A202C" letter-spacing="-1.5" style="fill:rgb(26, 32, 44);stroke:none;color:rgb(0, 0, 0);stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;opacity:1;font-family:Inter, system-ui, -apple-system, sans-serif;font-size:64px;font-weight:700;text-anchor:start;dominant-baseline:auto">Recall</text>
+
+<!-- Tagline -->
+<text x="82" y="262" font-family="Inter, system-ui, -apple-system, sans-serif" font-size="14" font-weight="500" fill="#4A5568" letter-spacing="3" style="fill:rgb(74, 85, 104);stroke:none;color:rgb(0, 0, 0);stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;opacity:1;font-family:Inter, system-ui, -apple-system, sans-serif;font-size:14px;font-weight:500;text-anchor:start;dominant-baseline:auto">BOOKMARK CATALOG</text>
+
+<!-- Decorative thin line -->
+<line x1="80" y1="280" x2="320" y2="280" stroke="#CBD5E0" stroke-width="1" style="fill:rgb(0, 0, 0);stroke:rgb(203, 213, 224);color:rgb(0, 0, 0);stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;opacity:1;font-family:&quot;Anthropic Sans&quot;, -apple-system, &quot;system-ui&quot;, &quot;Segoe UI&quot;, sans-serif;font-size:16px;font-weight:400;text-anchor:start;dominant-baseline:auto"/>
+
+<!-- RIGHT SIDE: circular icon -->
+<circle cx="530" cy="180" r="95" fill="#FFFFFF" stroke="#E2E8F0" stroke-width="1" style="fill:rgb(255, 255, 255);stroke:rgb(226, 232, 240);color:rgb(0, 0, 0);stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;opacity:1;font-family:&quot;Anthropic Sans&quot;, -apple-system, &quot;system-ui&quot;, &quot;Segoe UI&quot;, sans-serif;font-size:16px;font-weight:400;text-anchor:start;dominant-baseline:auto"/>
+<g transform="translate(485, 130)" style="fill:rgb(0, 0, 0);stroke:none;color:rgb(0, 0, 0);stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;opacity:1;font-family:&quot;Anthropic Sans&quot;, -apple-system, &quot;system-ui&quot;, &quot;Segoe UI&quot;, sans-serif;font-size:16px;font-weight:400;text-anchor:start;dominant-baseline:auto">
+<path d="M16 6 L48 6 Q52 6 52 10 L52 80 L34 67 L16 80 L16 10 Q16 6 16 6 Z" fill="#718096" style="fill:rgb(113, 128, 150);stroke:none;color:rgb(0, 0, 0);stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;opacity:1;font-family:&quot;Anthropic Sans&quot;, -apple-system, &quot;system-ui&quot;, &quot;Segoe UI&quot;, sans-serif;font-size:16px;font-weight:400;text-anchor:start;dominant-baseline:auto"/>
+<path d="M28 14 L60 14 Q64 14 64 18 L64 88 L46 75 L28 88 L28 18 Q28 14 28 14 Z" fill="#A0AEC0" style="fill:rgb(160, 174, 192);stroke:none;color:rgb(0, 0, 0);stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;opacity:1;font-family:&quot;Anthropic Sans&quot;, -apple-system, &quot;system-ui&quot;, &quot;Segoe UI&quot;, sans-serif;font-size:16px;font-weight:400;text-anchor:start;dominant-baseline:auto"/>
+<path d="M40 22 L72 22 Q76 22 76 26 L76 96 L58 83 L40 96 L40 26 Q40 22 40 22 Z" fill="#1A202C" style="fill:rgb(26, 32, 44);stroke:none;color:rgb(0, 0, 0);stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;opacity:1;font-family:&quot;Anthropic Sans&quot;, -apple-system, &quot;system-ui&quot;, &quot;Segoe UI&quot;, sans-serif;font-size:16px;font-weight:400;text-anchor:start;dominant-baseline:auto"/>
+</g>
+
+<!-- Subtle accent dots in corners -->
+<circle cx="640" cy="40" r="2" fill="#1A202C" opacity="0.3" style="fill:rgb(26, 32, 44);stroke:none;color:rgb(0, 0, 0);stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;opacity:0.3;font-family:&quot;Anthropic Sans&quot;, -apple-system, &quot;system-ui&quot;, &quot;Segoe UI&quot;, sans-serif;font-size:16px;font-weight:400;text-anchor:start;dominant-baseline:auto"/>
+<circle cx="40" cy="320" r="2" fill="#1A202C" opacity="0.3" style="fill:rgb(26, 32, 44);stroke:none;color:rgb(0, 0, 0);stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;opacity:0.3;font-family:&quot;Anthropic Sans&quot;, -apple-system, &quot;system-ui&quot;, &quot;Segoe UI&quot;, sans-serif;font-size:16px;font-weight:400;text-anchor:start;dominant-baseline:auto"/>
+
+</svg>

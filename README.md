@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="assets/recall-github.png" alt="Recall" />
+  <img src="assets/recall-github.jpg" alt="Recall" />
 </p>
 
 # Recall
@@ -127,16 +127,17 @@ The Chrome extension lets you save the current tab to any collection and open co
 
 ### Connect to Your Account
 
-1. Go to **Settings** in the Recall web app
-2. Click **Generate Extension Token**
-3. Copy the token
-4. Click the Recall extension icon → paste the token → **Connect**
+The extension shares your website session automatically — no tokens needed.
+
+1. Sign in to [recall.ltd](https://recall.ltd) with Google
+2. Click the Recall extension icon — it detects your session and you're ready to go
+
+If you're not signed in, the extension will prompt you to sign in and open the website for you.
 
 ### Dev / Prod Toggle
 
 - Click the ⚙️ gear icon in the extension header
 - Toggle between **DEV** and **PROD**
-- Each environment can have its own token
 
 ---
 
@@ -159,7 +160,7 @@ Save links from any iOS app (Safari, Twitter, Reddit, etc.) directly to Recall u
 3. Tap **ⓘ** at the bottom → enable **Show in Share Sheet**
 4. Done — "Save to Recall" now appears when you share any link on iOS
 
-> Get your API token from **Settings → Chrome Extension** in the Recall web app.
+> Get your API token from **Settings → API Token** in the Recall web app.
 
 ---
 
