@@ -14,7 +14,7 @@ import { InstantCapture } from "@/components/InstantCapture";
 import { MergeCollections } from "@/components/MergeCollections";
 import {
   FolderOpen, Bookmark as BookmarkIcon, Plus,
-  X, Trash2, Pencil, Undo2, ChevronDown, CheckSquare,
+  X, Trash2, Pencil, Undo2, ChevronDown, CheckSquare, Share2,
 } from "lucide-react";
 
 type Props = {
@@ -44,6 +44,7 @@ export function DashboardContent({ collections: initialCollections, allBookmarks
 
   const [newColName, setNewColName] = useState("");
   const [newColLoading, setNewColLoading] = useState(false);
+  const [copied, setCopied] = useState(false);
 
   const checksumRef = useRef({ count: allBookmarks.length, latestId: allBookmarks[0]?.id ?? 0 });
 
@@ -86,6 +87,14 @@ export function DashboardContent({ collections: initialCollections, allBookmarks
     document.addEventListener("keydown", handleEscape);
     return () => document.removeEventListener("keydown", handleEscape);
   }, [showAddForm, showNewCollection, selectedIds, selectMode]);
+
+  function handleShare() {
+    const urls = filtered.map((b) => `- ${b.url}`).join("\n");
+    navigator.clipboard.writeText(urls).then(() => {
+      setCopied(true);
+      setTimeout(() => setCopied(false), 1500);
+    });
+  }
 
   async function handleAddBookmark(e: React.FormEvent) {
     e.preventDefault();
@@ -330,6 +339,13 @@ export function DashboardContent({ collections: initialCollections, allBookmarks
               )}
             </div>
             <div className="flex items-center gap-2">
+              <button
+                onClick={handleShare}
+                className="flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium rounded-md transition-colors text-secondary hover:text-primary border border-border hover:border-border-hover"
+              >
+                <Share2 className="w-4 h-4" />
+                {copied ? "Copied!" : "Share"}
+              </button>
               <button
                 onClick={() => { setSelectMode(!selectMode); if (selectMode) setSelectedIds(new Set()); }}
                 className={`flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium rounded-md transition-colors ${
