@@ -14,7 +14,7 @@ import { InstantCapture } from "@/components/InstantCapture";
 import { MergeCollections } from "@/components/MergeCollections";
 import {
   FolderOpen, Bookmark as BookmarkIcon, Plus,
-  X, Trash2, Pencil, Undo2, ChevronDown, CheckSquare, Share2,
+  X, Trash2, Pencil, Undo2, ChevronDown, CheckSquare, Copy,
 } from "lucide-react";
 
 type Props = {
@@ -343,8 +343,8 @@ export function DashboardContent({ collections: initialCollections, allBookmarks
                 onClick={handleShare}
                 className="flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium rounded-md transition-colors text-secondary hover:text-primary border border-border hover:border-border-hover"
               >
-                <Share2 className="w-4 h-4" />
-                {copied ? "Copied!" : "Share"}
+                <Copy className="w-4 h-4" />
+                {copied ? "Copied!" : "Clip"}
               </button>
               <button
                 onClick={() => { setSelectMode(!selectMode); if (selectMode) setSelectedIds(new Set()); }}
