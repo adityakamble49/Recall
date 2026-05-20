@@ -12,6 +12,13 @@ async function getSession() {
   return session;
 }
 
+async function verifyCollectionOwnership(collectionId: number, userId: string): Promise<void> {
+  const [col] = await (db as any).select({ id: collections.id }).from(collections)
+    .where(and(eq(collections.id, collectionId), eq(collections.userId, userId)))
+    .limit(1);
+  if (!col) throw new Error("Collection not found");
+}
+
 // --- Collections ---
 
 async function getOrCreateDefaultCollection(userId: string): Promise<number> {
@@ -182,9 +189,13 @@ export async function getBookmarkChecksum() {
 
 export async function moveBookmark(bookmarkId: number, targetCollectionId: number | null) {
   const session = await getSession();
+  const userId = session.user!.id!;
+  if (targetCollectionId !== null) {
+    await verifyCollectionOwnership(targetCollectionId, userId);
+  }
   await (db as any).update(bookmarks)
     .set({ collectionId: targetCollectionId })
-    .where(and(eq(bookmarks.id, bookmarkId), eq(bookmarks.userId, session.user!.id!)));
+    .where(and(eq(bookmarks.id, bookmarkId), eq(bookmarks.userId, userId)));
 }
 
 export async function renameBookmark(id: number, title: string) {
@@ -204,6 +215,12 @@ export async function updateCollection(id: number, data: { name?: string; descri
 export async function mergeCollections(sourceIds: number[], targetId: number) {
   const session = await getSession();
   const userId = session.user!.id!;
+
+  await verifyCollectionOwnership(targetId, userId);
+  const ownedSources = await (db as any).select({ id: collections.id }).from(collections)
+    .where(and(eq(collections.userId, userId), inArray(collections.id, sourceIds)));
+  if (ownedSources.length !== sourceIds.length) throw new Error("Collection not found");
+
   // Move all bookmarks from sources to target
   for (const srcId of sourceIds) {
     await (db as any).update(bookmarks)
@@ -220,9 +237,11 @@ export async function mergeCollections(sourceIds: number[], targetId: number) {
 
 export async function bulkMoveBookmarks(ids: number[], collectionId: number) {
   const session = await getSession();
+  const userId = session.user!.id!;
+  await verifyCollectionOwnership(collectionId, userId);
   await (db as any).update(bookmarks)
     .set({ collectionId })
-    .where(and(eq(bookmarks.userId, session.user!.id!), inArray(bookmarks.id, ids)));
+    .where(and(eq(bookmarks.userId, userId), inArray(bookmarks.id, ids)));
 }
 
 export async function bulkDeleteBookmarks(ids: number[]) {
