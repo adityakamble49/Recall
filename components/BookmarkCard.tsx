@@ -8,6 +8,7 @@ import {
   MoreVertical, Pencil, Trash2, ArrowRight,
   ExternalLink,
 } from "lucide-react";
+import { isSafeUrl } from "@/lib/validation";
 
 type Props = {
   bookmark: Bookmark;
@@ -57,7 +58,12 @@ export function BookmarkCard({ bookmark, collections, showCollection, selected, 
     await refresh();
   }
 
-  const domain = new URL(bookmark.url).hostname.replace("www.", "");
+  let domain: string;
+  try {
+    domain = new URL(bookmark.url).hostname.replace("www.", "");
+  } catch {
+    domain = "unknown";
+  }
   const timeAgo = new Date(bookmark.createdAt).toLocaleDateString(undefined, {
     month: "short",
     day: "numeric",
@@ -116,15 +122,27 @@ export function BookmarkCard({ bookmark, collections, showCollection, selected, 
           </div>
         </button>
       )}
-      <a href={bookmark.url} target="_blank" rel="noopener noreferrer" className="flex items-center gap-4 flex-1 min-w-0">
-        <div className="w-10 h-10 rounded-lg bg-raised border border-border flex items-center justify-center shrink-0">
-          {bookmark.favicon ? <img src={bookmark.favicon} alt="" className="w-5 h-5" /> : <ExternalLink className="w-4 h-4 text-muted" />}
+      {isSafeUrl(bookmark.url) ? (
+        <a href={bookmark.url} target="_blank" rel="noopener noreferrer" className="flex items-center gap-4 flex-1 min-w-0">
+          <div className="w-10 h-10 rounded-lg bg-raised border border-border flex items-center justify-center shrink-0">
+            {bookmark.favicon ? <img src={bookmark.favicon} alt="" className="w-5 h-5" /> : <ExternalLink className="w-4 h-4 text-muted" />}
+          </div>
+          <div className="flex-1 min-w-0">
+            <div className="text-sm font-medium truncate text-primary">{bookmark.title}</div>
+            <div className="text-xs text-secondary truncate mt-0.5 font-mono">{collectionName ? `${collectionName} · ` : ""}{timeAgo} · {domain}</div>
+          </div>
+        </a>
+      ) : (
+        <div className="flex items-center gap-4 flex-1 min-w-0">
+          <div className="w-10 h-10 rounded-lg bg-raised border border-border flex items-center justify-center shrink-0">
+            <ExternalLink className="w-4 h-4 text-muted" />
+          </div>
+          <div className="flex-1 min-w-0">
+            <div className="text-sm font-medium truncate text-primary">{bookmark.title}</div>
+            <div className="text-xs text-secondary truncate mt-0.5 font-mono">{collectionName ? `${collectionName} · ` : ""}{timeAgo} · {domain}</div>
+          </div>
         </div>
-        <div className="flex-1 min-w-0">
-          <div className="text-sm font-medium truncate text-primary">{bookmark.title}</div>
-          <div className="text-xs text-secondary truncate mt-0.5 font-mono">{collectionName ? `${collectionName} · ` : ""}{timeAgo} · {domain}</div>
-        </div>
-      </a>
+      )}
       <div className="flex items-center gap-1 shrink-0 ml-2">
         <button onClick={() => setShowMenu(!showMenu)} className="p-1.5 opacity-0 group-hover:opacity-100 transition-opacity text-secondary hover:text-primary">
           <MoreVertical className="w-4 h-4" />

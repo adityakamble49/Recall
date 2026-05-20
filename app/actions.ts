@@ -4,6 +4,7 @@ import { db } from "@/lib/db";
 import { collections, bookmarks } from "@/lib/db/schema";
 import { desc, eq, and, count, notInArray, isNull, or, inArray } from "drizzle-orm";
 import { auth } from "@/auth";
+import { validateBookmarkFields } from "@/lib/validation";
 
 async function getSession() {
   const session = await auth();
@@ -129,6 +130,10 @@ export async function getCollectionById(id: number) {
 export async function createBookmark(data: { title: string; url: string; description?: string; collectionId?: number }): Promise<{ error?: string }> {
   const session = await getSession();
   const userId = session.user!.id!;
+
+  const fieldCheck = validateBookmarkFields({ title: data.title, url: data.url, description: data.description });
+  if (!fieldCheck.valid) return { error: fieldCheck.error };
+
   const collectionId = data.collectionId ?? await getOrCreateDefaultCollection(userId);
 
   // Duplicate check within same collection

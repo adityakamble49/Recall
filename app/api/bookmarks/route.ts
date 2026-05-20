@@ -3,6 +3,7 @@ import { getApiUser } from "@/lib/api-auth";
 import { db } from "@/lib/db";
 import { bookmarks, collections } from "@/lib/db/schema";
 import { eq, and, desc } from "drizzle-orm";
+import { validateBookmarkFields } from "@/lib/validation";
 
 async function getOrCreateDefaultCollection(userId: string): Promise<number> {
   const [existing] = await (db as any).select({ id: collections.id }).from(collections)
@@ -22,6 +23,9 @@ export async function POST(req: NextRequest) {
   const body = await req.json();
   const { title, url, collectionId } = body;
   if (!title || !url) return NextResponse.json({ error: "title and url required" }, { status: 400 });
+
+  const fieldCheck = validateBookmarkFields({ title, url, description: body.description });
+  if (!fieldCheck.valid) return NextResponse.json({ error: fieldCheck.error }, { status: 400 });
 
   const targetId = collectionId ?? await getOrCreateDefaultCollection(userId);
 
