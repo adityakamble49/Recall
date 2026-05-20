@@ -3,11 +3,16 @@ import { auth } from "@/auth";
 import { db } from "@/lib/db";
 import { apiTokens } from "@/lib/db/schema";
 import { eq } from "drizzle-orm";
+import { hasFeatureFlag, FLAGS } from "@/lib/feature-flags";
 
 // GET: return existing token or null
 export async function GET() {
   const session = await auth();
   if (!session?.user?.id) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+
+  if (!await hasFeatureFlag(session.user.id, FLAGS.API_TOKENS)) {
+    return NextResponse.json({ error: "Feature not available" }, { status: 403 });
+  }
 
   const [existing] = await (db as any).select()
     .from(apiTokens)
@@ -21,6 +26,10 @@ export async function GET() {
 export async function POST() {
   const session = await auth();
   if (!session?.user?.id) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+
+  if (!await hasFeatureFlag(session.user.id, FLAGS.API_TOKENS)) {
+    return NextResponse.json({ error: "Feature not available" }, { status: 403 });
+  }
 
   // Delete existing tokens for this user
   await (db as any).delete(apiTokens).where(eq(apiTokens.userId, session.user.id));

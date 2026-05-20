@@ -3,10 +3,13 @@ import { SignInPrompt } from "@/components/SignInPrompt";
 import { ExtensionToken } from "@/components/ExtensionToken";
 import Image from "next/image";
 import { LogOut, Key, User } from "lucide-react";
+import { hasFeatureFlag, FLAGS } from "@/lib/feature-flags";
 
 export default async function SettingsPage() {
   const session = await auth();
   if (!session?.user) return <SignInPrompt />;
+
+  const showApiTokens = await hasFeatureFlag(session.user.id!, FLAGS.API_TOKENS);
 
   return (
     <div className="max-w-lg mx-auto px-6 md:px-10 py-10 md:py-16 space-y-10">
@@ -30,20 +33,22 @@ export default async function SettingsPage() {
         </div>
       </section>
 
-      {/* API Token */}
-      <section className="space-y-3">
-        <h2 className="text-xs font-semibold font-mono uppercase tracking-wider text-muted px-1">API Token</h2>
-        <div className="p-5 border border-border rounded-xl bg-surface space-y-4 shadow-card">
-          <div className="flex items-start gap-3">
-            <Key className="w-5 h-5 text-muted mt-0.5" />
-            <div>
-              <p className="text-sm font-medium text-primary">Personal Access Token</p>
-              <p className="text-xs text-muted mt-0.5 leading-relaxed">Generate a token for mobile apps or third-party integrations.</p>
+      {/* API Token (preview — feature-flagged) */}
+      {showApiTokens && (
+        <section className="space-y-3">
+          <h2 className="text-xs font-semibold font-mono uppercase tracking-wider text-muted px-1">API Token</h2>
+          <div className="p-5 border border-border rounded-xl bg-surface space-y-4 shadow-card">
+            <div className="flex items-start gap-3">
+              <Key className="w-5 h-5 text-muted mt-0.5" />
+              <div>
+                <p className="text-sm font-medium text-primary">Personal Access Token</p>
+                <p className="text-xs text-muted mt-0.5 leading-relaxed">Generate a token for mobile apps or third-party integrations.</p>
+              </div>
             </div>
+            <ExtensionToken />
           </div>
-          <ExtensionToken />
-        </div>
-      </section>
+        </section>
+      )}
 
       {/* Sign Out */}
       <section>

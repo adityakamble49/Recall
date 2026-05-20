@@ -16,6 +16,7 @@ export function ExtensionToken() {
     setLoading(true);
     try {
       const res = await fetch("/api/token", { method: "POST" });
+      if (!res.ok) return;
       const data = await res.json();
       setToken(data.token);
     } finally {
