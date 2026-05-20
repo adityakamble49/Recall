@@ -1,5 +1,5 @@
 import {
-  pgTable, text, integer, timestamp, serial, primaryKey, boolean,
+  pgTable, text, integer, timestamp, serial, primaryKey, boolean, unique,
 } from "drizzle-orm/pg-core";
 import { sql } from "drizzle-orm";
 import type { AdapterAccountType } from "next-auth/adapters";
@@ -80,6 +80,16 @@ export const apiTokens = pgTable("api_tokens", {
   name: text("name").default("Chrome Extension").notNull(),
   createdAt: timestamp("created_at").default(sql`CURRENT_TIMESTAMP`).notNull(),
 });
+
+export const featureFlags = pgTable("feature_flags", {
+  id: serial("id").primaryKey(),
+  userId: text("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
+  flag: text("flag").notNull(),
+  enabled: boolean("enabled").default(true).notNull(),
+  createdAt: timestamp("created_at").default(sql`CURRENT_TIMESTAMP`).notNull(),
+}, (table) => [
+  unique().on(table.userId, table.flag),
+]);
 
 export type Collection = typeof collections.$inferSelect;
 export type NewCollection = typeof collections.$inferInsert;
