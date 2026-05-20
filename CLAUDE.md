@@ -1,4 +1,8 @@
-# AGENTS.md
+# CLAUDE.md
+
+## Commit conventions
+
+- Do NOT include `Co-Authored-By` lines in commit messages
 
 ## Live Reload Pattern
 
