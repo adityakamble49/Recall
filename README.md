@@ -101,7 +101,11 @@ openssl rand -base64 33
 Push the schema to your Neon database:
 
 ```bash
+# Dev (reads from .env.local by default)
 npx drizzle-kit push
+
+# Prod (point to a different env file)
+ENV_FILE=.env.production npx drizzle-kit push
 ```
 
 ### 4. Run Development Server
@@ -179,10 +183,11 @@ api_tokens        # Extension API tokens (bearer auth)
 To update the schema after changes:
 
 ```bash
-# Dev
+# Dev (reads from .env.local by default)
 npx drizzle-kit push
 
-# Prod (with prod DATABASE_URL)
+# Prod (via env file or direct DATABASE_URL)
+ENV_FILE=.env.production npx drizzle-kit push
 DATABASE_URL="your_prod_url" npx drizzle-kit push
 ```
 
