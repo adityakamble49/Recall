@@ -2,11 +2,11 @@
 
 import { useState, useEffect, useRef } from "react";
 import { type Bookmark, type Collection } from "@/lib/db/schema";
-import { deleteBookmark, moveBookmark, renameBookmark } from "@/app/actions";
+import { deleteBookmark, moveBookmark, renameBookmark, copyBookmark } from "@/app/actions";
 import { useDashboard } from "@/lib/dashboard-context";
 import {
   MoreVertical, Pencil, Trash2, ArrowRight,
-  ExternalLink,
+  ExternalLink, Copy,
 } from "lucide-react";
 import { isSafeUrl } from "@/lib/validation";
 
@@ -23,6 +23,7 @@ export function BookmarkCard({ bookmark, collections, showCollection, selected, 
   const { refresh } = useDashboard();
   const [showMenu, setShowMenu] = useState(false);
   const [showMove, setShowMove] = useState(false);
+  const [showCopy, setShowCopy] = useState(false);
   const [isDragging, setIsDragging] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
 
@@ -31,6 +32,7 @@ export function BookmarkCard({ bookmark, collections, showCollection, selected, 
       if (menuRef.current && !menuRef.current.contains(event.target as Node)) {
         setShowMenu(false);
         setShowMove(false);
+        setShowCopy(false);
       }
     }
     document.addEventListener("mousedown", handleClickOutside);
@@ -47,6 +49,16 @@ export function BookmarkCard({ bookmark, collections, showCollection, selected, 
     await moveBookmark(bookmark.id, collectionId);
     setShowMenu(false);
     setShowMove(false);
+    await refresh();
+  }
+
+  async function handleCopy(collectionId: number) {
+    const result = await copyBookmark(bookmark.id, collectionId);
+    if (result.error) {
+      alert(result.error);
+    }
+    setShowMenu(false);
+    setShowCopy(false);
     await refresh();
   }
 
@@ -80,7 +92,7 @@ export function BookmarkCard({ bookmark, collections, showCollection, selected, 
         <Pencil className="w-4 h-4 text-secondary" /> Rename
       </button>
       <button
-        onClick={(e) => { e.preventDefault(); e.stopPropagation(); setShowMove(!showMove); }}
+        onClick={(e) => { e.preventDefault(); e.stopPropagation(); setShowMove(!showMove); setShowCopy(false); }}
         className="w-full text-left px-3 py-2 text-sm hover:bg-raised flex items-center gap-2 text-primary"
       >
         <ArrowRight className="w-4 h-4 text-secondary" /> Move to...
@@ -89,6 +101,21 @@ export function BookmarkCard({ bookmark, collections, showCollection, selected, 
         <div className="px-1 py-1 border-t border-border mt-1">
           {collections.filter(c => c.id !== bookmark.collectionId).map(c => (
             <button key={c.id} onClick={(e) => { e.preventDefault(); e.stopPropagation(); handleMove(c.id); }} className="w-full text-left px-2 py-1.5 text-xs rounded hover:bg-raised text-secondary hover:text-primary">
+              {c.name}
+            </button>
+          ))}
+        </div>
+      )}
+      <button
+        onClick={(e) => { e.preventDefault(); e.stopPropagation(); setShowCopy(!showCopy); setShowMove(false); }}
+        className="w-full text-left px-3 py-2 text-sm hover:bg-raised flex items-center gap-2 text-primary"
+      >
+        <Copy className="w-4 h-4 text-secondary" /> Copy to...
+      </button>
+      {showCopy && collections && (
+        <div className="px-1 py-1 border-t border-border mt-1">
+          {collections.filter(c => c.id !== bookmark.collectionId).map(c => (
+            <button key={c.id} onClick={(e) => { e.preventDefault(); e.stopPropagation(); handleCopy(c.id); }} className="w-full text-left px-2 py-1.5 text-xs rounded hover:bg-raised text-secondary hover:text-primary">
               {c.name}
             </button>
           ))}

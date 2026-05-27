@@ -249,3 +249,33 @@ export async function bulkDeleteBookmarks(ids: number[]) {
   await (db as any).delete(bookmarks)
     .where(and(eq(bookmarks.userId, session.user!.id!), inArray(bookmarks.id, ids)));
 }
+
+export async function copyBookmark(bookmarkId: number, targetCollectionId: number): Promise<{ error?: string }> {
+  const session = await getSession();
+  const userId = session.user!.id!;
+
+  await verifyCollectionOwnership(targetCollectionId, userId);
+
+  const [source] = await (db as any).select().from(bookmarks)
+    .where(and(eq(bookmarks.id, bookmarkId), eq(bookmarks.userId, userId)))
+    .limit(1);
+  if (!source) throw new Error("Bookmark not found");
+
+  // Duplicate check within same collection
+  const [existing] = await (db as any).select({ id: bookmarks.id }).from(bookmarks)
+    .where(and(eq(bookmarks.userId, userId), eq(bookmarks.collectionId, targetCollectionId), eq(bookmarks.url, source.url)))
+    .limit(1);
+  if (existing) return { error: "Already saved in this collection" };
+
+  await (db as any).insert(bookmarks).values({
+    userId,
+    collectionId: targetCollectionId,
+    title: source.title,
+    url: source.url,
+    description: source.description,
+    favicon: source.favicon,
+    isFavorite: source.isFavorite,
+    isArchived: source.isArchived,
+  });
+  return {};
+}
