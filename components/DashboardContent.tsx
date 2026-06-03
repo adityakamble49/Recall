@@ -14,7 +14,7 @@ import { InstantCapture } from "@/components/InstantCapture";
 import { MergeCollections } from "@/components/MergeCollections";
 import {
   FolderOpen, Bookmark as BookmarkIcon, Plus,
-  X, Trash2, Pencil, Undo2, ChevronDown, CheckSquare, Copy,
+  X, Trash2, Pencil, Undo2, ChevronDown, CheckSquare, Copy, Search,
 } from "lucide-react";
 
 type Props = {
@@ -46,11 +46,24 @@ export function DashboardContent({ collections: initialCollections, allBookmarks
   const [newColLoading, setNewColLoading] = useState(false);
   const [copied, setCopied] = useState(false);
 
+  const [searchQuery, setSearchQuery] = useState("");
+  const [isMac, setIsMac] = useState(true);
+  const searchInputRef = useRef<HTMLInputElement>(null);
+
   const checksumRef = useRef({ count: allBookmarks.length, latestId: allBookmarks[0]?.id ?? 0 });
 
-  const filtered = activeId === null
-    ? bookmarks.slice(0, 20)
-    : bookmarks.filter((b) => b.collectionId === activeId);
+  const filtered = bookmarks.filter((b) => {
+    if (activeId !== null && b.collectionId !== activeId) return false;
+    if (!searchQuery) return true;
+    const query = searchQuery.toLowerCase();
+    return (
+      b.title.toLowerCase().includes(query) ||
+      b.url.toLowerCase().includes(query) ||
+      (b.description && b.description.toLowerCase().includes(query))
+    );
+  });
+
+  const displayBookmarks = searchQuery ? filtered : (activeId === null ? filtered.slice(0, 20) : filtered);
 
   const refresh = useCallback(async () => {
     const [fresh, cols, deleted] = await Promise.all([
@@ -60,6 +73,40 @@ export function DashboardContent({ collections: initialCollections, allBookmarks
     setCollections(cols);
     setDeletedCollections(deleted);
     checksumRef.current = { count: fresh.length, latestId: fresh[0]?.id ?? 0 };
+  }, []);
+
+  // Hydrate platform detection
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      setIsMac(navigator.platform.toUpperCase().indexOf("MAC") >= 0);
+    }
+  }, []);
+
+  // Search hotkeys
+  useEffect(() => {
+    function handleKeyDown(e: KeyboardEvent) {
+      const activeEl = document.activeElement;
+      const isTyping = activeEl && (
+        activeEl.tagName === "INPUT" ||
+        activeEl.tagName === "TEXTAREA" ||
+        activeEl.getAttribute("contenteditable") === "true"
+      );
+
+      if (isTyping) {
+        if (e.key === "Escape" && activeEl === searchInputRef.current) {
+          searchInputRef.current.blur();
+          setSearchQuery("");
+        }
+        return;
+      }
+
+      if (e.key === "/" || ((e.metaKey || e.ctrlKey) && e.key === "k")) {
+        e.preventDefault();
+        searchInputRef.current?.focus();
+      }
+    }
+    document.addEventListener("keydown", handleKeyDown);
+    return () => document.removeEventListener("keydown", handleKeyDown);
   }, []);
 
   // Poll for cross-session changes
@@ -89,7 +136,7 @@ export function DashboardContent({ collections: initialCollections, allBookmarks
   }, [showAddForm, showNewCollection, selectedIds, selectMode]);
 
   function handleShare() {
-    const urls = filtered.map((b) => `- ${b.url}`).join("\n");
+    const urls = displayBookmarks.map((b) => `- ${b.url}`).join("\n");
     navigator.clipboard.writeText(urls).then(() => {
       setCopied(true);
       setTimeout(() => setCopied(false), 1500);
@@ -332,7 +379,12 @@ export function DashboardContent({ collections: initialCollections, allBookmarks
         <section className="min-w-0">
           <div className="flex items-center justify-between mb-5 px-1">
             <div className="flex items-center gap-3">
-              {activeCollection ? (
+              {searchQuery ? (
+                <h2 className="text-sm font-semibold text-primary">
+                  {activeCollection ? `Search in ${activeCollection.name}` : "Search Results"}
+                  <span className="font-mono text-xs font-normal text-muted ml-2">({displayBookmarks.length} match{displayBookmarks.length !== 1 ? "es" : ""})</span>
+                </h2>
+              ) : activeCollection ? (
                 <h2 className="text-sm font-semibold text-primary">{activeCollection.name}</h2>
               ) : (
                 <h2 className="text-xs font-semibold font-mono uppercase tracking-wider text-muted">Recent</h2>
@@ -414,16 +466,50 @@ export function DashboardContent({ collections: initialCollections, allBookmarks
             </form>
           )}
 
-          {filtered.length === 0 ? (
+          {/* Search Bar */}
+          <div className="mb-4 relative">
+            <input
+              ref={searchInputRef}
+              type="text"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              placeholder="Search title, URL, or description..."
+              className="w-full h-11 pl-11 pr-20 text-sm border border-border rounded-xl bg-surface text-primary focus:outline-none focus:ring-2 focus:ring-primary/20 placeholder:text-muted transition-all"
+            />
+            <div className="absolute left-4 top-1/2 -translate-y-1/2 flex items-center justify-center pointer-events-none">
+              <Search className="w-4 h-4 text-muted" />
+            </div>
+            <div className="absolute right-3 top-1/2 -translate-y-1/2 flex items-center gap-2">
+              {searchQuery && (
+                <button
+                  type="button"
+                  onClick={() => setSearchQuery("")}
+                  className="p-1 hover:bg-raised text-muted hover:text-primary rounded-lg transition-all"
+                  title="Clear search"
+                >
+                  <X className="w-4 h-4" />
+                </button>
+              )}
+              <kbd className="hidden sm:inline-flex h-6 select-none items-center gap-0.5 rounded-lg border border-border bg-raised px-2 font-mono text-[10px] font-medium text-muted pointer-events-none">
+                <span className="text-[10px]">{isMac ? "⌘" : "Ctrl"}</span>K
+              </kbd>
+            </div>
+          </div>
+
+          {displayBookmarks.length === 0 ? (
             <div className="flex flex-col items-center justify-center py-20 border-2 border-dashed border-border rounded-xl bg-void/50">
               <BookmarkIcon className="w-10 h-10 text-muted/20 mb-4" />
               <p className="text-sm text-muted">
-                {activeCollection ? "No bookmarks in this collection" : "No bookmarks yet"}
+                {searchQuery
+                  ? "No matches found"
+                  : activeCollection
+                    ? "No bookmarks in this collection"
+                    : "No bookmarks yet"}
               </p>
             </div>
           ) : (
             <div className="border border-border rounded-xl bg-surface divide-y divide-border overflow-visible shadow-card">
-              {filtered.map((bm) => (
+              {displayBookmarks.map((bm) => (
                 <BookmarkCard key={bm.id} bookmark={bm} collections={collections} showCollection={activeId === null} selected={selectedIds.has(bm.id)} onSelect={selectMode ? toggleSelect : undefined} dragIds={selectMode && selectedIds.has(bm.id) ? [...selectedIds] : undefined} />
               ))}
             </div>
