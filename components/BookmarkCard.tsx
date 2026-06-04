@@ -170,12 +170,16 @@ export function BookmarkCard({ bookmark, collections, showCollection, selected, 
           </div>
         </div>
       )}
-      <div className="flex items-center gap-1 shrink-0 ml-2">
-        <button onClick={() => setShowMenu(!showMenu)} className="p-1.5 opacity-0 group-hover:opacity-100 transition-opacity text-secondary hover:text-primary">
-          <MoreVertical className="w-4 h-4" />
-        </button>
-      </div>
-      {menu}
+      {!onSelect && (
+        <>
+          <div className="flex items-center gap-1 shrink-0 ml-2">
+            <button onClick={() => setShowMenu(!showMenu)} className="p-1.5 opacity-0 group-hover:opacity-100 transition-opacity text-secondary hover:text-primary">
+              <MoreVertical className="w-4 h-4" />
+            </button>
+          </div>
+          {menu}
+        </>
+      )}
     </div>
   );
 }
