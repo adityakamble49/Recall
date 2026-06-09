@@ -88,7 +88,7 @@ export function MergeCollections({ collections }: Props) {
                 <select
                   value={targetId ?? ""}
                   onChange={(e) => setTargetId(parseInt(e.target.value))}
-                  className="w-full px-4 py-2.5 text-sm border border-border rounded-xl bg-raised text-primary focus:outline-none focus:ring-2 focus:ring-primary/20 appearance-none pr-10"
+                  className="w-full px-4 py-2.5 text-base md:text-sm border border-border rounded-xl bg-raised text-primary focus:outline-none focus:ring-2 focus:ring-primary/20 appearance-none pr-10"
                 >
                   <option value="" disabled>Select target...</option>
                   {selectedArr.map((id) => {

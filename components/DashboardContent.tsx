@@ -474,7 +474,7 @@ export function DashboardContent({ collections: initialCollections, allBookmarks
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               placeholder="Search title, URL, or description..."
-              className="w-full h-11 pl-11 pr-20 text-sm border border-border rounded-xl bg-surface text-primary focus:outline-none focus:ring-2 focus:ring-primary/20 placeholder:text-muted transition-all"
+              className="w-full h-11 pl-11 pr-20 text-base md:text-sm border border-border rounded-xl bg-surface text-primary focus:outline-none focus:ring-2 focus:ring-primary/20 placeholder:text-muted transition-all"
             />
             <div className="absolute left-4 top-1/2 -translate-y-1/2 flex items-center justify-center pointer-events-none">
               <Search className="w-4 h-4 text-muted" />
@@ -522,7 +522,7 @@ export function DashboardContent({ collections: initialCollections, allBookmarks
           <span className="text-sm font-mono font-bold">{selectedIds.size} selected</span>
           <select
             onChange={async (e) => { if (e.target.value) { await handleBulkMove(parseInt(e.target.value)); } e.target.value = ""; }}
-            className="px-2 py-1 text-xs rounded-md bg-void/10 text-void border-none focus:outline-none"
+            className="px-2 py-1 text-base md:text-xs rounded-md bg-void/10 text-void border-none focus:outline-none"
           >
             <option value="">Move to...</option>
             {collections.map(c => <option key={c.id} value={c.id} className="text-primary">{c.name}</option>)}
