@@ -2,11 +2,11 @@
 
 import { useState, useEffect, useRef } from "react";
 import { type Bookmark, type Collection } from "@/lib/db/schema";
-import { deleteBookmark, moveBookmark, renameBookmark, copyBookmark } from "@/app/actions";
+import { deleteBookmark, moveBookmark, renameBookmark, copyBookmark, fetchBookmarkTitle } from "@/app/actions";
 import { useDashboard } from "@/lib/dashboard-context";
 import {
   MoreVertical, Pencil, Trash2, ArrowRight,
-  ExternalLink, Copy,
+  ExternalLink, Copy, RefreshCw,
 } from "lucide-react";
 import { isSafeUrl } from "@/lib/validation";
 
@@ -24,6 +24,7 @@ export function BookmarkCard({ bookmark, collections, showCollection, selected, 
   const [showMenu, setShowMenu] = useState(false);
   const [showMove, setShowMove] = useState(false);
   const [showCopy, setShowCopy] = useState(false);
+  const [fetching, setFetching] = useState(false);
   const [isDragging, setIsDragging] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
 
@@ -62,6 +63,18 @@ export function BookmarkCard({ bookmark, collections, showCollection, selected, 
     await refresh();
   }
 
+  async function handleFetchTitle() {
+    setFetching(true);
+    try {
+      const result = await fetchBookmarkTitle(bookmark.id);
+      if (result.error) { alert(result.error); return; }
+      setShowMenu(false);
+      await refresh();
+    } finally {
+      setFetching(false);
+    }
+  }
+
   async function handleRename() {
     const newTitle = prompt("Rename bookmark:", bookmark.title);
     if (!newTitle || newTitle.trim() === bookmark.title) return;
@@ -85,6 +98,13 @@ export function BookmarkCard({ bookmark, collections, showCollection, selected, 
 
   const menu = showMenu && (
     <div ref={menuRef} className="absolute right-0 top-10 z-20 bg-surface border border-border-hover rounded-lg shadow-floating py-1 min-w-[160px]">
+      <button
+        onClick={(e) => { e.preventDefault(); e.stopPropagation(); handleFetchTitle(); }}
+        disabled={fetching}
+        className="w-full text-left px-3 py-2 text-sm hover:bg-raised flex items-center gap-2 text-primary disabled:opacity-50"
+      >
+        <RefreshCw className={`w-4 h-4 text-secondary ${fetching ? "animate-spin" : ""}`} /> {fetching ? "Fetching…" : "Fetch title"}
+      </button>
       <button
         onClick={(e) => { e.preventDefault(); e.stopPropagation(); handleRename(); }}
         className="w-full text-left px-3 py-2 text-sm hover:bg-raised flex items-center gap-2 text-primary"

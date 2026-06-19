@@ -4,6 +4,7 @@ import { db } from "@/lib/db";
 import { bookmarks, collections } from "@/lib/db/schema";
 import { eq, and, desc } from "drizzle-orm";
 import { validateBookmarkFields } from "@/lib/validation";
+import { fetchPageTitle } from "@/lib/fetch-title";
 
 async function getOrCreateDefaultCollection(userId: string): Promise<number> {
   const [existing] = await (db as any).select({ id: collections.id }).from(collections)
@@ -35,10 +36,18 @@ export async function POST(req: NextRequest) {
     .limit(1);
   if (existing) return NextResponse.json({ error: "Already saved in this collection" }, { status: 409 });
 
+  // iOS Shortcut can only forward the URL, so it sends title === url. In that case
+  // fetch the real page title; best-effort, falls back to the URL on failure.
+  let finalTitle = title;
+  if (title === url) {
+    const fetched = await fetchPageTitle(url);
+    if (fetched) finalTitle = fetched;
+  }
+
   let favicon: string | undefined;
   try { favicon = `https://www.google.com/s2/favicons?domain=${new URL(url).hostname}&sz=64`; } catch {}
 
-  await (db as any).insert(bookmarks).values({ userId, title, url, collectionId: targetId, favicon });
+  await (db as any).insert(bookmarks).values({ userId, title: finalTitle, url, collectionId: targetId, favicon });
 
   return NextResponse.json({ ok: true });
 }

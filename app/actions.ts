@@ -5,6 +5,7 @@ import { collections, bookmarks } from "@/lib/db/schema";
 import { desc, eq, and, count, notInArray, isNull, or, inArray } from "drizzle-orm";
 import { auth } from "@/auth";
 import { validateBookmarkFields } from "@/lib/validation";
+import { fetchPageTitle } from "@/lib/fetch-title";
 
 async function getSession() {
   const session = await auth();
@@ -196,6 +197,23 @@ export async function moveBookmark(bookmarkId: number, targetCollectionId: numbe
   await (db as any).update(bookmarks)
     .set({ collectionId: targetCollectionId })
     .where(and(eq(bookmarks.id, bookmarkId), eq(bookmarks.userId, userId)));
+}
+
+export async function fetchBookmarkTitle(id: number): Promise<{ error?: string; title?: string }> {
+  const session = await getSession();
+  const userId = session.user!.id!;
+  const [bookmark] = await (db as any).select({ url: bookmarks.url }).from(bookmarks)
+    .where(and(eq(bookmarks.id, id), eq(bookmarks.userId, userId)))
+    .limit(1);
+  if (!bookmark) throw new Error("Bookmark not found");
+
+  const title = await fetchPageTitle(bookmark.url);
+  if (!title) return { error: "Couldn't fetch a title for this page" };
+
+  await (db as any).update(bookmarks)
+    .set({ title })
+    .where(and(eq(bookmarks.id, id), eq(bookmarks.userId, userId)));
+  return { title };
 }
 
 export async function renameBookmark(id: number, title: string) {
