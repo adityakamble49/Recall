@@ -5,6 +5,7 @@ import { bookmarks, collections } from "@/lib/db/schema";
 import { eq, and, desc } from "drizzle-orm";
 import { validateBookmarkFields } from "@/lib/validation";
 import { fetchPageTitle } from "@/lib/fetch-title";
+import { getOwnedActiveCollectionId, isValidCollectionId } from "@/lib/collection-access";
 
 async function getOrCreateDefaultCollection(userId: string): Promise<number> {
   const [existing] = await (db as any).select({ id: collections.id }).from(collections)
@@ -28,7 +29,19 @@ export async function POST(req: NextRequest) {
   const fieldCheck = validateBookmarkFields({ title, url, description: body.description });
   if (!fieldCheck.valid) return NextResponse.json({ error: fieldCheck.error }, { status: 400 });
 
-  const targetId = collectionId ?? await getOrCreateDefaultCollection(userId);
+  let targetId: number;
+  if (collectionId === undefined || collectionId === null) {
+    targetId = await getOrCreateDefaultCollection(userId);
+  } else {
+    if (!isValidCollectionId(collectionId)) {
+      return NextResponse.json({ error: "collectionId must be a positive integer" }, { status: 400 });
+    }
+    const ownedCollectionId = await getOwnedActiveCollectionId(userId, collectionId);
+    if (ownedCollectionId === null) {
+      return NextResponse.json({ error: "Collection not found" }, { status: 404 });
+    }
+    targetId = ownedCollectionId;
+  }
 
   // Duplicate check
   const [existing] = await (db as any).select({ id: bookmarks.id }).from(bookmarks)

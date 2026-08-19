@@ -6,6 +6,7 @@ import { desc, eq, and, count, notInArray, isNull, or, inArray } from "drizzle-o
 import { auth } from "@/auth";
 import { validateBookmarkFields } from "@/lib/validation";
 import { fetchPageTitle } from "@/lib/fetch-title";
+import { getOwnedActiveCollectionId } from "@/lib/collection-access";
 
 async function getSession() {
   const session = await auth();
@@ -14,10 +15,9 @@ async function getSession() {
 }
 
 async function verifyCollectionOwnership(collectionId: number, userId: string): Promise<void> {
-  const [col] = await (db as any).select({ id: collections.id }).from(collections)
-    .where(and(eq(collections.id, collectionId), eq(collections.userId, userId)))
-    .limit(1);
-  if (!col) throw new Error("Collection not found");
+  if (await getOwnedActiveCollectionId(userId, collectionId) === null) {
+    throw new Error("Collection not found");
+  }
 }
 
 // --- Collections ---
@@ -142,7 +142,10 @@ export async function createBookmark(data: { title: string; url: string; descrip
   const fieldCheck = validateBookmarkFields({ title: data.title, url: data.url, description: data.description });
   if (!fieldCheck.valid) return { error: fieldCheck.error };
 
-  const collectionId = data.collectionId ?? await getOrCreateDefaultCollection(userId);
+  const collectionId = data.collectionId === undefined
+    ? await getOrCreateDefaultCollection(userId)
+    : await getOwnedActiveCollectionId(userId, data.collectionId);
+  if (collectionId === null) return { error: "Collection not found" };
 
   // Duplicate check within same collection
   const [existing] = await (db as any).select({ id: bookmarks.id }).from(bookmarks)
