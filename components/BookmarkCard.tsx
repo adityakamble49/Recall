@@ -160,8 +160,7 @@ export function BookmarkCard({ bookmark, collections, showCollection, selected, 
         setIsDragging(true);
       }}
       onDragEnd={() => setIsDragging(false)}
-      className={`relative group flex items-center justify-between px-4 py-3 hover:bg-raised cursor-grab active:cursor-grabbing transition-all duration-150 border-b border-border last:border-0 ${selected ? "bg-raised" : ""} ${isDragging ? "opacity-50 scale-[0.98]" : ""}`}
-      style={{ transitionTimingFunction: "cubic-bezier(0.25, 1, 0.5, 1)" }}>
+      className={`relative group flex items-center justify-between px-4 py-3 hover:bg-raised cursor-grab active:cursor-grabbing transition-all duration-150 ease-[cubic-bezier(0.25,1,0.5,1)] border-b border-border last:border-0 ${selected ? "bg-raised" : ""} ${isDragging ? "opacity-50 scale-[0.98]" : ""}`}>
       {onSelect && (
         <button onClick={() => onSelect(bookmark.id)} className="shrink-0 mr-3">
           <div className={`w-4 h-4 rounded border transition-colors ${selected ? "bg-primary border-primary" : "border-border"}`}>

@@ -284,14 +284,13 @@ export function DashboardContent({ collections: initialCollections, allBookmarks
               >
                 <button
                   onClick={() => { setActiveId(col.id); setSelectedIds(new Set()); setSelectMode(false); }}
-                  className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl text-left transition-all duration-200 border ${
+                  className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl text-left transition-all duration-200 ease-[cubic-bezier(0.25,1,0.5,1)] border ${
                     dragOverId === col.id || dropSuccessId === col.id
                       ? "border-primary bg-raised"
                       : activeId === col.id
                         ? "border-primary bg-primary text-void"
                         : "border-border bg-surface hover:border-border-hover text-secondary hover:text-primary"
                   }`}
-                  style={{ transitionTimingFunction: "cubic-bezier(0.25, 1, 0.5, 1)" }}
                 >
                   <FolderOpen className="w-4 h-4" />
                   <span className="text-sm font-medium flex-1 truncate">{col.name}</span>
