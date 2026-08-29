@@ -64,8 +64,10 @@
     .setup a { color: #18181b; font-weight: 600; text-decoration: none; font-size: 12px; border-bottom: 1px solid #d4d4d8; }
     .setup a:hover { border-color: #18181b; }
     .setup .icon { font-size: 32px; color: #a1a1aa; margin-bottom: 16px; }
+    .standalone-status { padding: 40px 20px; }
 
     /* Env badge */
+    .environment-indicator { padding: 6px 16px 0; text-align: right; }
     .env-badge { font-family: 'JetBrains Mono', monospace; font-size: 9px; font-weight: 700; padding: 2px 6px; border-radius: 3px; text-transform: uppercase; letter-spacing: 0.05em; }
     .env-badge.prod { color: #18181b; background: #f4f4f5; }
     .env-badge.dev { color: #b45309; background: #fef3c7; }
@@ -75,6 +77,9 @@
     .env-btn.active { background: #18181b; color: #fff; border: 1px solid #18181b; }
     .env-btn.inactive { background: #fff; color: #71717a; border: 1px solid #e4e4e7; }
     .env-btn.inactive:hover { border-color: #d4d4d8; color: #18181b; }
+    .env-toggle { display: flex; gap: 6px; margin-bottom: 12px; }
+
+    .group-color { width: 8px; height: 8px; border-radius: 50%; display: inline-block; }
 
     /* Disconnect */
     .disconnect { padding: 8px 16px 16px; text-align: center; }
@@ -129,6 +134,6 @@
       <div class="sk-row"><div class="skeleton sk-row-name"></div><div class="skeleton sk-row-pill"></div></div>
     </div>
   </div>
-  <script src="popup.js"></script>
+  <script type="module" src="popup.js"></script>
 </body>
 </html>
