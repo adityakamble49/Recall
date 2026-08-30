@@ -4,7 +4,7 @@ import { readFileSync } from "node:fs";
 import { join } from "node:path";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
-import { init, showError, showMain, showSettings } from "@/extension/popup.js";
+import { init, showError, showMain, showSettings, showSignIn } from "@/extension/popup.js";
 import { authorizeExtension, authorizedFetch } from "@/extension/auth.js";
 
 const ATTACK = `"><img src=x onerror="alert(1)"><svg onload="alert(2)">`;
@@ -38,8 +38,9 @@ function installChromeMock(tabGroups: unknown[] = []) {
     },
     permissions: { request: vi.fn().mockResolvedValue(true) },
     runtime: {
-      sendMessage: vi.fn((message: { type?: string }, callback?: (value: unknown[]) => void) => {
+      sendMessage: vi.fn(async (message: { type?: string }, callback?: (value: unknown[]) => void) => {
         if (message.type === "GET_TAB_GROUPS") callback?.(tabGroups);
+        if (message.type === "AUTHORIZE_EXTENSION") return { ok: true };
       }),
     },
     storage: {
@@ -88,13 +89,27 @@ describe("extension popup DOM injection defenses", () => {
 
   it("does not request cookies or forward the web session token", () => {
     const manifest = readFileSync(join(process.cwd(), "extension/manifest.json"), "utf8");
-    const source = ["extension/popup.js", "extension/auth.js"]
+    const source = ["extension/popup.js", "extension/auth.js", "extension/background.js"]
       .map((path) => readFileSync(join(process.cwd(), path), "utf8"))
       .join("\n");
 
     expect(JSON.parse(manifest).permissions).toContain("identity");
     expect(JSON.parse(manifest).permissions).not.toContain("cookies");
+    expect(JSON.parse(manifest).background.type).toBe("module");
     expect(source).not.toMatch(/chrome\.cookies|X-Session-Token|x-session-token|authjs\.session-token/);
+  });
+
+  it("runs authorization in the background worker so popup closure cannot interrupt it", async () => {
+    const chromeMock = installChromeMock();
+    showSignIn();
+
+    (document.querySelector("#signin-btn") as HTMLButtonElement).click();
+    await settleAsyncHandlers();
+
+    expect(chromeMock.runtime.sendMessage).toHaveBeenCalledWith({
+      type: "AUTHORIZE_EXTENSION",
+      apiBase: "https://recall.ltd",
+    });
   });
 
   it("exchanges a state-bound PKCE code and stores only the extension credential", async () => {

@@ -1,5 +1,4 @@
 import {
-  authorizeExtension,
   authorizedFetch,
   disconnectExtension,
   getStoredCredential,
@@ -184,7 +183,11 @@ export function showSignIn() {
     signInButton.disabled = true;
     signInButton.textContent = "Connecting...";
     try {
-      await authorizeExtension(API_BASE);
+      const result = await chrome.runtime.sendMessage({
+        type: "AUTHORIZE_EXTENSION",
+        apiBase: API_BASE,
+      });
+      if (!result?.ok) throw new Error(result?.error ?? "Authorization failed");
       await init();
     } catch {
       signInButton.disabled = false;
