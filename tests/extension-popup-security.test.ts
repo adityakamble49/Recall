@@ -6,6 +6,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import { init, showError, showMain, showSettings, showSignIn } from "@/extension/popup.js";
 import { authorizeExtension, authorizedFetch } from "@/extension/auth.js";
+import { DEV_URL, PROD_URL } from "@/extension/config.js";
 
 const ATTACK = `"><img src=x onerror="alert(1)"><svg onload="alert(2)">`;
 const ACCESS_TOKEN = `recall_ext_${"a".repeat(32)}.${"b".repeat(43)}`;
@@ -96,6 +97,8 @@ describe("extension popup DOM injection defenses", () => {
     expect(JSON.parse(manifest).permissions).toContain("identity");
     expect(JSON.parse(manifest).permissions).not.toContain("cookies");
     expect(JSON.parse(manifest).background.type).toBe("module");
+    expect(JSON.parse(manifest).host_permissions).toEqual([`${PROD_URL}/*`]);
+    expect(JSON.parse(manifest).optional_host_permissions).toEqual([`${DEV_URL}/*`]);
     expect(source).not.toMatch(/chrome\.cookies|X-Session-Token|x-session-token|authjs\.session-token/);
   });
 

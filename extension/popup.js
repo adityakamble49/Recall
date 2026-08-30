@@ -4,11 +4,9 @@ import {
   getStoredCredential,
   protectCredentialStorage,
 } from "./auth.js";
+import { DEV_URL, isAllowedApiBase, PROD_URL } from "./config.js";
 
 // ---- CONFIG ----
-const PROD_URL = "https://recall.ltd";
-const DEV_URL = "http://localhost:3030";
-
 let API_BASE = PROD_URL;
 
 function element(tagName, { id, className, text, type, title } = {}) {
@@ -150,7 +148,7 @@ export async function showSettings() {
   devButton.addEventListener("click", () => { input.value = DEV_URL; });
   saveButton.addEventListener("click", async () => {
     const url = input.value.trim().replace(/\/+$/, "");
-    if (url !== PROD_URL && url !== DEV_URL) return;
+    if (!isAllowedApiBase(url)) return;
     if (url === DEV_URL) {
       const granted = await chrome.permissions.request({ origins: [`${DEV_URL}/*`] });
       if (!granted) {

@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getApiUser } from "@/lib/api-auth";
+import { getApiPrincipal, getApiUser, hasTrustedSessionMutationOrigin } from "@/lib/api-auth";
 import { db } from "@/lib/db";
 import { collections, bookmarks } from "@/lib/db/schema";
 import { eq, count, and, desc } from "drizzle-orm";
@@ -27,8 +27,12 @@ export async function GET() {
 }
 
 export async function POST(req: NextRequest) {
-  const userId = await getApiUser("collections:write");
-  if (!userId) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  const principal = await getApiPrincipal("collections:write");
+  if (!principal) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  if (principal.authType === "session" && !hasTrustedSessionMutationOrigin(req)) {
+    return NextResponse.json({ error: "Untrusted request origin" }, { status: 403 });
+  }
+  const userId = principal.userId;
 
   const { name, description, icon, color } = await req.json();
   if (!name) return NextResponse.json({ error: "name required" }, { status: 400 });

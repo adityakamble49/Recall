@@ -4,6 +4,7 @@ import {
   createCspNonce,
   setBaselineSecurityHeaders,
 } from "@/lib/security-headers";
+import { PRODUCTION_WEB_ORIGIN } from "@/lib/app-config";
 
 export function proxy(request: NextRequest) {
   const isApiRequest = request.nextUrl.pathname.startsWith("/api/");
@@ -48,7 +49,7 @@ function setCorsHeaders(headers: Headers) {
 
 function corsHeaders(): Record<string, string> {
   return {
-    "Access-Control-Allow-Origin": "https://recall.ltd",
+    "Access-Control-Allow-Origin": PRODUCTION_WEB_ORIGIN,
     "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
     "Access-Control-Allow-Headers": "Content-Type, Authorization",
     "Vary": "Origin",

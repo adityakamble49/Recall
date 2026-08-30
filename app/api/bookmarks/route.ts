@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getApiUser } from "@/lib/api-auth";
+import { getApiPrincipal, getApiUser, hasTrustedSessionMutationOrigin } from "@/lib/api-auth";
 import { db } from "@/lib/db";
 import { bookmarks, collections } from "@/lib/db/schema";
 import { eq, and, desc } from "drizzle-orm";
@@ -19,8 +19,12 @@ async function getOrCreateDefaultCollection(userId: string): Promise<number> {
 }
 
 export async function POST(req: NextRequest) {
-  const userId = await getApiUser("bookmarks:write");
-  if (!userId) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  const principal = await getApiPrincipal("bookmarks:write");
+  if (!principal) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  if (principal.authType === "session" && !hasTrustedSessionMutationOrigin(req)) {
+    return NextResponse.json({ error: "Untrusted request origin" }, { status: 403 });
+  }
+  const userId = principal.userId;
 
   const body = await req.json();
   const { title, url, collectionId } = body;

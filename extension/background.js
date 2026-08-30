@@ -1,7 +1,5 @@
 import { authorizeExtension } from "./auth.js";
-
-const PROD_URL = "https://recall.ltd";
-const DEV_URL = "http://localhost:3030";
+import { isAllowedApiBase } from "./config.js";
 
 // Background service worker for authentication and tab group operations
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
@@ -20,7 +18,7 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
 });
 
 async function authorizeFromBackground(apiBase) {
-  if (apiBase !== PROD_URL && apiBase !== DEV_URL) {
+  if (!isAllowedApiBase(apiBase)) {
     return { ok: false, error: "Invalid API endpoint" };
   }
   try {
