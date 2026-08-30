@@ -19,7 +19,7 @@ async function getOrCreateDefaultCollection(userId: string): Promise<number> {
 }
 
 export async function POST(req: NextRequest) {
-  const userId = await getApiUser();
+  const userId = await getApiUser("bookmarks:write");
   if (!userId) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
   const body = await req.json();
@@ -66,7 +66,7 @@ export async function POST(req: NextRequest) {
 }
 
 export async function GET(req: NextRequest) {
-  const userId = await getApiUser();
+  const userId = await getApiUser("bookmarks:read");
   if (!userId) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
   const collectionId = req.nextUrl.searchParams.get("collectionId");

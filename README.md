@@ -88,6 +88,7 @@ DATABASE_URL=postgresql://...
 AUTH_SECRET=your_auth_secret_here
 AUTH_GOOGLE_ID=your_google_client_id
 AUTH_GOOGLE_SECRET=your_google_client_secret
+RECALL_EXTENSION_IDS=mifdhnokgeipckgedpbnccdlllpdpcel
 ```
 
 Generate `AUTH_SECRET`:
@@ -131,12 +132,9 @@ The Chrome extension lets you save the current tab to any collection and open co
 
 ### Connect to Your Account
 
-The extension shares your website session automatically — no tokens needed.
-
-1. Sign in to [recall.ltd](https://recall.ltd) with Google
-2. Click the Recall extension icon — it detects your session and you're ready to go
-
-If you're not signed in, the extension will prompt you to sign in and open the website for you.
+1. Click the Recall extension icon
+2. Select **Connect Recall**
+3. Sign in if needed, then authorize the extension
 
 ### Dev / Prod Toggle
 
@@ -177,7 +175,9 @@ session           # Active sessions
 verificationToken # Email verification tokens
 collections       # Bookmark collections (name, description, icon, color, isPinned)
 bookmarks         # Bookmarks (title, url, favicon, collectionId, isFavorite, isArchived)
-api_tokens        # Extension API tokens (bearer auth)
+api_tokens        # Personal API tokens (bearer auth)
+extension_auth_codes  # Short-lived extension authorization codes
+extension_credentials # Revocable extension credentials
 ```
 
 To update the schema after changes:
@@ -199,7 +199,7 @@ DATABASE_URL="your_prod_url" npx drizzle-kit push
 
 1. Push to GitHub
 2. Import the repo on [vercel.com](https://vercel.com)
-3. Add environment variables: `DATABASE_URL`, `AUTH_SECRET`, `AUTH_GOOGLE_ID`, `AUTH_GOOGLE_SECRET`
+3. Add environment variables: `DATABASE_URL`, `AUTH_SECRET`, `AUTH_GOOGLE_ID`, `AUTH_GOOGLE_SECRET`, `RECALL_EXTENSION_IDS`
 4. Deploy
 
 ### Environment Variables
@@ -210,6 +210,7 @@ DATABASE_URL="your_prod_url" npx drizzle-kit push
 | `AUTH_SECRET` | NextAuth session encryption secret |
 | `AUTH_GOOGLE_ID` | Google OAuth client ID |
 | `AUTH_GOOGLE_SECRET` | Google OAuth client secret |
+| `RECALL_EXTENSION_IDS` | Comma-separated Chrome Web Store extension IDs allowed to connect |
 
 ---
 

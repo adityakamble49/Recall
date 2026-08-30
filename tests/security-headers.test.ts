@@ -82,7 +82,7 @@ describe("security proxy", () => {
     const response = proxy(new NextRequest("https://recall.ltd/api/bookmarks", { method: "OPTIONS" }));
 
     expect(response.status).toBe(204);
-    expect(response.headers.get("access-control-allow-headers")).toBe("Content-Type, Authorization, X-Session-Token");
+    expect(response.headers.get("access-control-allow-headers")).toBe("Content-Type, Authorization");
     expect(response.headers.get("referrer-policy")).toBe("strict-origin-when-cross-origin");
     expect(response.headers.get("permissions-policy")).toContain("camera=()");
   });

@@ -4,12 +4,17 @@ import { ExtensionToken } from "@/components/ExtensionToken";
 import Image from "next/image";
 import { LogOut, Key, User } from "lucide-react";
 import { hasFeatureFlag, FLAGS } from "@/lib/feature-flags";
+import { listActiveExtensionCredentials } from "@/lib/extension-auth";
+import { ConnectedExtensions } from "@/components/ConnectedExtensions";
 
 export default async function SettingsPage() {
   const session = await auth();
   if (!session?.user) return <SignInPrompt />;
 
-  const showApiTokens = await hasFeatureFlag(session.user.id!, FLAGS.API_TOKENS);
+  const [showApiTokens, extensionCredentials] = await Promise.all([
+    hasFeatureFlag(session.user.id!, FLAGS.API_TOKENS),
+    listActiveExtensionCredentials(session.user.id!),
+  ]);
 
   return (
     <div className="max-w-lg mx-auto px-6 md:px-10 py-10 md:py-16 space-y-10">
@@ -49,6 +54,13 @@ export default async function SettingsPage() {
           </div>
         </section>
       )}
+
+      <ConnectedExtensions initialConnections={extensionCredentials.map((credential) => ({
+        id: credential.id,
+        name: credential.name,
+        createdAt: credential.createdAt.toISOString(),
+        expiresAt: credential.expiresAt.toISOString(),
+      }))} />
 
       {/* Sign Out */}
       <section>

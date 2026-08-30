@@ -1,5 +1,5 @@
 import {
-  pgTable, text, integer, timestamp, serial, primaryKey, boolean, unique,
+  pgTable, text, integer, timestamp, serial, primaryKey, boolean, unique, index,
 } from "drizzle-orm/pg-core";
 import { sql } from "drizzle-orm";
 import type { AdapterAccountType } from "next-auth/adapters";
@@ -80,6 +80,34 @@ export const apiTokens = pgTable("api_tokens", {
   name: text("name").default("Chrome Extension").notNull(),
   createdAt: timestamp("created_at").default(sql`CURRENT_TIMESTAMP`).notNull(),
 });
+
+export const extensionAuthCodes = pgTable("extension_auth_codes", {
+  codeHash: text("code_hash").primaryKey(),
+  userId: text("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
+  codeChallenge: text("code_challenge").notNull(),
+  redirectUri: text("redirect_uri").notNull(),
+  expiresAt: timestamp("expires_at", { mode: "date" }).notNull(),
+  usedAt: timestamp("used_at", { mode: "date" }),
+  createdAt: timestamp("created_at").default(sql`CURRENT_TIMESTAMP`).notNull(),
+}, (table) => [
+  index("extension_auth_codes_expires_at_idx").on(table.expiresAt),
+]);
+
+export const extensionCredentials = pgTable("extension_credentials", {
+  id: serial("id").primaryKey(),
+  publicId: text("public_id").notNull().unique(),
+  secretHash: text("secret_hash").notNull(),
+  userId: text("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
+  name: text("name").default("Chrome Extension").notNull(),
+  scopes: text("scopes").notNull(),
+  expiresAt: timestamp("expires_at", { mode: "date" }).notNull(),
+  revokedAt: timestamp("revoked_at", { mode: "date" }),
+  lastUsedAt: timestamp("last_used_at", { mode: "date" }),
+  createdAt: timestamp("created_at").default(sql`CURRENT_TIMESTAMP`).notNull(),
+}, (table) => [
+  index("extension_credentials_user_id_idx").on(table.userId),
+  index("extension_credentials_expires_at_idx").on(table.expiresAt),
+]);
 
 export const featureFlags = pgTable("feature_flags", {
   id: serial("id").primaryKey(),

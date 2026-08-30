@@ -1,9 +1,16 @@
+import {
+  authorizeExtension,
+  authorizedFetch,
+  disconnectExtension,
+  getStoredCredential,
+  protectCredentialStorage,
+} from "./auth.js";
+
 // ---- CONFIG ----
 const PROD_URL = "https://recall.ltd";
 const DEV_URL = "http://localhost:3030";
 
 let API_BASE = PROD_URL;
-let pollTimer = null;
 
 function element(tagName, { id, className, text, type, title } = {}) {
   const node = document.createElement(tagName);
@@ -59,42 +66,18 @@ async function getConfig() {
   return data;
 }
 
-function getSessionCookieName() {
-  return API_BASE.startsWith("https")
-    ? "__Secure-authjs.session-token"
-    : "authjs.session-token";
-}
-
-async function getSessionToken() {
-  const cookie = await chrome.cookies.get({
-    url: API_BASE,
-    name: getSessionCookieName(),
-  });
-  return cookie?.value ?? null;
-}
-
 async function apiFetch(path, options = {}) {
-  const token = await getSessionToken();
-  const headers = { "Content-Type": "application/json", ...(options.headers || {}) };
-  if (token) headers["X-Session-Token"] = token;
-  return fetch(`${API_BASE}${path}`, { ...options, headers });
-}
-
-function stopPolling() {
-  if (pollTimer) {
-    clearInterval(pollTimer);
-    pollTimer = null;
-  }
+  return authorizedFetch(API_BASE, path, options);
 }
 
 export async function init() {
-  stopPolling();
+  await protectCredentialStorage();
   await getConfig();
   const settingsToggle = document.getElementById("settings-toggle");
-  if (settingsToggle) settingsToggle.onclick = () => showSettings();
+  if (settingsToggle) settingsToggle.onclick = () => { void showSettings(); };
 
-  const token = await getSessionToken();
-  if (!token) {
+  const credential = await getStoredCredential();
+  if (!credential) {
     showSignIn();
     return;
   }
@@ -114,8 +97,7 @@ export async function init() {
   }
 }
 
-export function showSettings() {
-  stopPolling();
+export async function showSettings() {
   const isDev = API_BASE === DEV_URL;
   const setup = element("div", { className: "setup" });
   setup.append(
@@ -148,13 +130,35 @@ export function showSettings() {
     type: "button",
   });
   setup.append(environmentButtons, input, saveButton);
+  const credential = await getStoredCredential();
+  if (credential) {
+    const disconnectButton = element("button", {
+      id: "disconnect-extension-btn",
+      className: "btn-secondary",
+      text: "Disconnect Extension",
+      type: "button",
+    });
+    setup.append(disconnectButton);
+    disconnectButton.addEventListener("click", async () => {
+      disconnectButton.disabled = true;
+      await disconnectExtension(API_BASE);
+      showSignIn();
+    });
+  }
   getApp().replaceChildren(setup);
 
   prodButton.addEventListener("click", () => { input.value = PROD_URL; });
   devButton.addEventListener("click", () => { input.value = DEV_URL; });
   saveButton.addEventListener("click", async () => {
     const url = input.value.trim().replace(/\/+$/, "");
-    if (!url) return;
+    if (url !== PROD_URL && url !== DEV_URL) return;
+    if (url === DEV_URL) {
+      const granted = await chrome.permissions.request({ origins: [`${DEV_URL}/*`] });
+      if (!granted) {
+        saveButton.textContent = "Local access denied";
+        return;
+      }
+    }
     await chrome.storage.local.set({ apiBase: url });
     API_BASE = url;
     await init();
@@ -166,33 +170,30 @@ export function showSignIn() {
   const signInButton = element("button", {
     id: "signin-btn",
     className: "btn-primary",
-    text: "Sign in with Google",
-    type: "button",
-  });
-  const checkButton = element("button", {
-    id: "check-btn",
-    className: "btn-secondary",
-    text: "I've signed in — check again",
+    text: "Connect Recall",
     type: "button",
   });
   setup.append(
     element("div", { className: "icon", text: "🔒" }),
-    element("p", { text: "Sign in to Recall to get started." }),
+    element("p", { text: "Connect your Recall account to get started." }),
     signInButton,
-    checkButton,
   );
   getApp().replaceChildren(setup);
 
-  signInButton.addEventListener("click", () => chrome.tabs.create({ url: API_BASE }));
-  checkButton.addEventListener("click", () => init());
-  pollTimer = setInterval(async () => {
-    const token = await getSessionToken();
-    if (token) await init();
-  }, 2000);
+  signInButton.addEventListener("click", async () => {
+    signInButton.disabled = true;
+    signInButton.textContent = "Connecting...";
+    try {
+      await authorizeExtension(API_BASE);
+      await init();
+    } catch {
+      signInButton.disabled = false;
+      signInButton.textContent = "Try connecting again";
+    }
+  });
 }
 
 export function showError(message) {
-  stopPolling();
   const status = element("div", { className: "status error", text: message });
   status.classList.add("standalone-status");
   getApp().replaceChildren(status);
@@ -299,7 +300,6 @@ function renderTabGroups(container, value) {
 }
 
 export function showMain(rawTab, rawCollections) {
-  stopPolling();
   const tab = {
     title: typeof rawTab?.title === "string" ? rawTab.title : "Untitled",
     url: typeof rawTab?.url === "string" ? rawTab.url : "",

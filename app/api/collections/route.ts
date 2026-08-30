@@ -5,7 +5,7 @@ import { collections, bookmarks } from "@/lib/db/schema";
 import { eq, count, and, desc } from "drizzle-orm";
 
 export async function GET() {
-  const userId = await getApiUser();
+  const userId = await getApiUser("collections:read");
   if (!userId) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
   const cols = await (db as any).select().from(collections)
@@ -27,7 +27,7 @@ export async function GET() {
 }
 
 export async function POST(req: NextRequest) {
-  const userId = await getApiUser();
+  const userId = await getApiUser("collections:write");
   if (!userId) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
   const { name, description, icon, color } = await req.json();

@@ -85,6 +85,7 @@ describe("POST /api/bookmarks collection authorization", () => {
     const response = await POST(request({ title: "Example", url: "https://example.com", collectionId: 7 }));
 
     expect(response.status).toBe(200);
+    expect(mocks.getApiUser).toHaveBeenCalledWith("bookmarks:write");
     expect(mocks.insertValues).toHaveBeenCalledWith(expect.objectContaining({ userId: "user-a", collectionId: 7 }));
   });
 
