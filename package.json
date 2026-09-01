@@ -5,6 +5,9 @@
   "scripts": {
     "dev": "next dev -p 3030",
     "build": "next build",
+    "extension:build": "npm run extension:build:dev && npm run extension:build:prod",
+    "extension:build:dev": "node scripts/build-extension.mjs --target dev",
+    "extension:build:prod": "node scripts/build-extension.mjs --target prod",
     "start": "next start",
     "lint": "eslint",
     "test": "vitest run"

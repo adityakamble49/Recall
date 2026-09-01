@@ -1,0 +1,10 @@
+{
+  "dev": {
+    "name": "Recall - Bookmark Tracker (DEV)",
+    "host_permissions": ["http://localhost:3030/*"]
+  },
+  "prod": {
+    "name": "Recall - Bookmark Tracker",
+    "host_permissions": ["https://recall.ltd/*"]
+  }
+}

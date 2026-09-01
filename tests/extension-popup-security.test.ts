@@ -6,7 +6,6 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import { init, showError, showMain, showSettings, showSignIn } from "@/extension/popup.js";
 import { authorizeExtension, authorizedFetch } from "@/extension/auth.js";
-import { DEV_URL, PROD_URL } from "@/extension/config.js";
 
 const ATTACK = `"><img src=x onerror="alert(1)"><svg onload="alert(2)">`;
 const ACCESS_TOKEN = `recall_ext_${"a".repeat(32)}.${"b".repeat(43)}`;
@@ -14,8 +13,7 @@ const CREDENTIAL = { accessToken: ACCESS_TOKEN, expiresAt: "2999-01-01T00:00:00.
 
 type ChromeMock = {
   identity: { getRedirectURL: ReturnType<typeof vi.fn>; launchWebAuthFlow: ReturnType<typeof vi.fn> };
-  permissions: { request: ReturnType<typeof vi.fn> };
-  runtime: { sendMessage: ReturnType<typeof vi.fn> };
+  runtime: { getManifest: ReturnType<typeof vi.fn>; sendMessage: ReturnType<typeof vi.fn> };
   storage: { local: {
     get: ReturnType<typeof vi.fn>;
     remove: ReturnType<typeof vi.fn>;
@@ -37,8 +35,11 @@ function installChromeMock(tabGroups: unknown[] = []) {
       getRedirectURL: vi.fn().mockReturnValue("https://mifdhnokgeipckgedpbnccdlllpdpcel.chromiumapp.org/recall-auth"),
       launchWebAuthFlow: vi.fn(),
     },
-    permissions: { request: vi.fn().mockResolvedValue(true) },
     runtime: {
+      getManifest: vi.fn().mockReturnValue({
+        name: "Recall - Bookmark Tracker",
+        host_permissions: ["https://recall.ltd/*"],
+      }),
       sendMessage: vi.fn(async (message: { type?: string }, callback?: (value: unknown[]) => void) => {
         if (message.type === "GET_TAB_GROUPS") callback?.(tabGroups);
         if (message.type === "AUTHORIZE_EXTENSION") return { ok: true };
@@ -89,17 +90,16 @@ describe("extension popup DOM injection defenses", () => {
   });
 
   it("does not request cookies or forward the web session token", () => {
-    const manifest = readFileSync(join(process.cwd(), "extension/manifest.json"), "utf8");
+    const manifest = JSON.parse(readFileSync(join(process.cwd(), "extension/manifest.base.json"), "utf8"));
     const source = ["extension/popup.js", "extension/auth.js", "extension/background.js"]
       .map((path) => readFileSync(join(process.cwd(), path), "utf8"))
       .join("\n");
 
-    expect(JSON.parse(manifest).permissions).toContain("identity");
-    expect(JSON.parse(manifest).permissions).not.toContain("cookies");
-    expect(JSON.parse(manifest).background.type).toBe("module");
-    expect(JSON.parse(manifest).host_permissions).toEqual([`${PROD_URL}/*`]);
-    expect(JSON.parse(manifest).optional_host_permissions).toEqual([`${DEV_URL}/*`]);
+    expect(manifest.permissions).toContain("identity");
+    expect(manifest.permissions).not.toContain("cookies");
+    expect(manifest.background.type).toBe("module");
     expect(source).not.toMatch(/chrome\.cookies|X-Session-Token|x-session-token|authjs\.session-token/);
+    expect(source).not.toMatch(/chrome\.permissions\.request/);
   });
 
   it("runs authorization in the background worker so popup closure cannot interrupt it", async () => {
@@ -111,7 +111,6 @@ describe("extension popup DOM injection defenses", () => {
 
     expect(chromeMock.runtime.sendMessage).toHaveBeenCalledWith({
       type: "AUTHORIZE_EXTENSION",
-      apiBase: "https://recall.ltd",
     });
   });
 
@@ -192,14 +191,28 @@ describe("extension popup DOM injection defenses", () => {
     expect(document.querySelectorAll("img, svg, script, [onerror], [onload]")).toHaveLength(0);
   });
 
-  it("keeps a hostile configured API endpoint in the input value", async () => {
+  it("ignores and removes the legacy stored API endpoint", async () => {
     const chromeMock = installChromeMock();
-    chromeMock.storage.local.get.mockResolvedValue({ apiBase: ATTACK });
+    chromeMock.storage.local.get.mockResolvedValue({
+      apiBase: ATTACK,
+      extensionCredential: CREDENTIAL,
+    });
+    const fetchMock = vi.fn().mockResolvedValue({
+      ok: true,
+      status: 200,
+      json: vi.fn().mockResolvedValue([]),
+    });
+    vi.stubGlobal("fetch", fetchMock);
 
     await init();
     await showSettings();
 
-    expect((document.querySelector("#api-url-input") as HTMLInputElement).value).toBe(ATTACK);
+    expect(chromeMock.storage.local.remove).toHaveBeenCalledWith(["apiBase"]);
+    expect(fetchMock).toHaveBeenCalledWith(
+      "https://recall.ltd/api/collections",
+      expect.any(Object),
+    );
+    expect(document.querySelector("#api-url-input")).toBeNull();
     expect(document.querySelectorAll("img, svg, script, [onerror], [onload]")).toHaveLength(0);
   });
 

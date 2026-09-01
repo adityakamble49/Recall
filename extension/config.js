@@ -1,8 +1,28 @@
-export const PROD_URL = "https://recall.ltd";
-export const DEV_URL = "http://localhost:3030";
+export function getExtensionConfig() {
+  const manifest = chrome.runtime.getManifest();
+  const permissions = manifest.host_permissions;
+  if (!Array.isArray(permissions) || permissions.length !== 1) {
+    throw new Error("Extension must declare exactly one API host");
+  }
 
-const ALLOWED_API_BASES = new Set([PROD_URL, DEV_URL]);
+  const pattern = permissions[0];
+  if (typeof pattern !== "string" || !pattern.endsWith("/*")) {
+    throw new Error("Extension API host permission is invalid");
+  }
 
-export function isAllowedApiBase(value) {
-  return ALLOWED_API_BASES.has(value);
+  const apiBase = pattern.slice(0, -2);
+  const parsed = new URL(apiBase);
+  if (!(["http:", "https:"].includes(parsed.protocol))
+    || parsed.pathname !== "/"
+    || parsed.search
+    || parsed.hash
+    || parsed.username
+    || parsed.password) {
+    throw new Error("Extension API origin is invalid");
+  }
+
+  return Object.freeze({
+    apiBase: parsed.origin,
+    isDevelopment: typeof manifest.name === "string" && manifest.name.endsWith(" (DEV)"),
+  });
 }

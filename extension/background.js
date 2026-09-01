@@ -1,10 +1,10 @@
 import { authorizeExtension } from "./auth.js";
-import { isAllowedApiBase } from "./config.js";
+import { getExtensionConfig } from "./config.js";
 
 // Background service worker for authentication and tab group operations
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   if (message.type === "AUTHORIZE_EXTENSION") {
-    authorizeFromBackground(message.apiBase).then(sendResponse);
+    authorizeFromBackground().then(sendResponse);
     return true; // keep the worker alive while the auth window is open
   }
   if (message.type === "OPEN_TAB_GROUP") {
@@ -17,11 +17,9 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   }
 });
 
-async function authorizeFromBackground(apiBase) {
-  if (!isAllowedApiBase(apiBase)) {
-    return { ok: false, error: "Invalid API endpoint" };
-  }
+async function authorizeFromBackground() {
   try {
+    const { apiBase } = getExtensionConfig();
     await authorizeExtension(apiBase);
     return { ok: true };
   } catch (error) {

@@ -4,10 +4,11 @@ import {
   getStoredCredential,
   protectCredentialStorage,
 } from "./auth.js";
-import { DEV_URL, isAllowedApiBase, PROD_URL } from "./config.js";
+import { getExtensionConfig } from "./config.js";
 
 // ---- CONFIG ----
-let API_BASE = PROD_URL;
+let API_BASE = "";
+let IS_DEVELOPMENT = false;
 
 function element(tagName, { id, className, text, type, title } = {}) {
   const node = document.createElement(tagName);
@@ -57,10 +58,11 @@ function normalizeTabGroups(value) {
   });
 }
 
-async function getConfig() {
-  const data = await chrome.storage.local.get(["apiBase"]);
-  API_BASE = typeof data.apiBase === "string" && data.apiBase ? data.apiBase : PROD_URL;
-  return data;
+async function loadBuildConfig() {
+  const config = getExtensionConfig();
+  API_BASE = config.apiBase;
+  IS_DEVELOPMENT = config.isDevelopment;
+  await chrome.storage.local.remove(["apiBase"]);
 }
 
 async function apiFetch(path, options = {}) {
@@ -69,7 +71,7 @@ async function apiFetch(path, options = {}) {
 
 export async function init() {
   await protectCredentialStorage();
-  await getConfig();
+  await loadBuildConfig();
   const settingsToggle = document.getElementById("settings-toggle");
   if (settingsToggle) settingsToggle.onclick = () => { void showSettings(); };
 
@@ -95,38 +97,11 @@ export async function init() {
 }
 
 export async function showSettings() {
-  const isDev = API_BASE === DEV_URL;
   const setup = element("div", { className: "setup" });
   setup.append(
     element("div", { className: "icon", text: "⚙" }),
-    element("p", { text: "API Endpoint" }),
+    element("p", { text: IS_DEVELOPMENT ? "Recall development build" : "Recall extension" }),
   );
-
-  const environmentButtons = element("div", { className: "env-toggle" });
-  const prodButton = element("button", {
-    id: "btn-prod",
-    className: `env-btn ${isDev ? "inactive" : "active"}`,
-    text: "PROD",
-    type: "button",
-  });
-  const devButton = element("button", {
-    id: "btn-dev",
-    className: `env-btn ${isDev ? "active" : "inactive"}`,
-    text: "DEV",
-    type: "button",
-  });
-  environmentButtons.append(prodButton, devButton);
-
-  const input = element("input", { id: "api-url-input", className: "token-input" });
-  input.type = "text";
-  input.value = API_BASE;
-  const saveButton = element("button", {
-    id: "save-settings-btn",
-    className: "btn-primary",
-    text: "Save & Reconnect",
-    type: "button",
-  });
-  setup.append(environmentButtons, input, saveButton);
   const credential = await getStoredCredential();
   if (credential) {
     const disconnectButton = element("button", {
@@ -143,23 +118,6 @@ export async function showSettings() {
     });
   }
   getApp().replaceChildren(setup);
-
-  prodButton.addEventListener("click", () => { input.value = PROD_URL; });
-  devButton.addEventListener("click", () => { input.value = DEV_URL; });
-  saveButton.addEventListener("click", async () => {
-    const url = input.value.trim().replace(/\/+$/, "");
-    if (!isAllowedApiBase(url)) return;
-    if (url === DEV_URL) {
-      const granted = await chrome.permissions.request({ origins: [`${DEV_URL}/*`] });
-      if (!granted) {
-        saveButton.textContent = "Local access denied";
-        return;
-      }
-    }
-    await chrome.storage.local.set({ apiBase: url });
-    API_BASE = url;
-    await init();
-  });
 }
 
 export function showSignIn() {
@@ -183,7 +141,6 @@ export function showSignIn() {
     try {
       const result = await chrome.runtime.sendMessage({
         type: "AUTHORIZE_EXTENSION",
-        apiBase: API_BASE,
       });
       if (!result?.ok) throw new Error(result?.error ?? "Authorization failed");
       await init();
@@ -306,12 +263,10 @@ export function showMain(rawTab, rawCollections) {
     url: typeof rawTab?.url === "string" ? rawTab.url : "",
   };
   const collections = normalizeCollections(rawCollections);
-  const isDev = API_BASE === DEV_URL;
-
   const environment = element("div", { className: "environment-indicator" });
   environment.append(element("span", {
-    className: `env-badge ${isDev ? "dev" : "prod"}`,
-    text: isDev ? "DEV" : "PROD",
+    className: `env-badge ${IS_DEVELOPMENT ? "dev" : "prod"}`,
+    text: IS_DEVELOPMENT ? "DEV" : "PROD",
   }));
 
   const currentTab = element("div", { className: "current-tab" });

@@ -31,7 +31,7 @@ Recall solves the problem of scattered bookmarks across browsers and devices. In
 - **Move & Organize** — Move bookmarks between collections, favorite, and delete
 - **Duplicate Detection** — Prevents saving the same URL twice in a collection
 - **Live Reload** — Dashboard auto-refreshes when bookmarks change from another session
-- **Dev/Prod Toggle** — Extension supports switching between local and production environments
+- **Environment-Specific Builds** — Separate extension artifacts for local development and production
 - **Responsive** — Single-page dashboard works on desktop and mobile
 
 </td>
@@ -125,10 +125,18 @@ The Chrome extension lets you save the current tab to any collection and open co
 
 ### Install (Developer Mode)
 
+Build the development extension:
+
+```bash
+npm run extension:build:dev
+```
+
 1. Open `chrome://extensions` in Chrome
 2. Enable **Developer mode** (toggle top-right)
 3. Click **Load unpacked**
-4. Select the `extension/` folder from this repo
+4. Select the `build/extension/dev/` folder from this repo
+
+Chrome assigns the generated DEV directory its own extension ID. Add that ID to `RECALL_EXTENSION_IDS` in `.env.local`, then restart the local app before connecting.
 
 ### Connect to Your Account
 
@@ -136,10 +144,15 @@ The Chrome extension lets you save the current tab to any collection and open co
 2. Select **Connect Recall**
 3. Sign in if needed, then authorize the extension
 
-### Dev / Prod Toggle
+### Production Build
 
-- Click the ⚙️ gear icon in the extension header
-- Toggle between **DEV** and **PROD**
+Generate the Store-targeted extension directory with:
+
+```bash
+npm run extension:build:prod
+```
+
+The production artifact is written to `build/extension/prod/` and contains only the `https://recall.ltd` host permission. Packaging and Store publishing are handled separately.
 
 ---
 
