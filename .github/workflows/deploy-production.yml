@@ -71,6 +71,34 @@ jobs:
       - name: Run type checking
         run: npm exec -- tsc --noEmit
 
+      - name: Materialize extension signing key
+        shell: bash
+        env:
+          CHROME_EXTENSION_SIGNING_KEY: ${{ secrets.CHROME_EXTENSION_SIGNING_KEY }}
+        run: |
+          set -euo pipefail
+          test -n "$CHROME_EXTENSION_SIGNING_KEY"
+          key_path="$RUNNER_TEMP/recall-extension-upload.pem"
+          umask 077
+          printf '%s\n' "$CHROME_EXTENSION_SIGNING_KEY" > "$key_path"
+          echo "RECALL_EXTENSION_SIGNING_KEY_PATH=$key_path" >> "$GITHUB_ENV"
+
+      - name: Package production extension
+        run: npm run extension:package:prod -- --version "${GITHUB_REF_NAME#v}" --crx
+
+      - name: Remove extension signing key
+        if: always()
+        run: rm -f "$RUNNER_TEMP/recall-extension-upload.pem"
+
+      - name: Upload extension packages
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: recall-chrome-${{ github.ref_name }}
+          path: artifacts/chrome/recall-chrome-*
+          if-no-files-found: error
+          retention-days: 30
+          compression-level: 0
+
       - name: Install pinned Vercel CLI
         run: npm install --global --ignore-scripts vercel@59.10.0
 

@@ -154,6 +154,51 @@ npm run extension:build:prod
 
 The production artifact is written to `build/extension/prod/` and contains only the `https://recall.ltd` host permission. Packaging and Store publishing are handled separately.
 
+### Production Packages
+
+Create a versioned, deterministic ZIP for local inspection or Chrome Web Store
+upload:
+
+```bash
+npm run extension:package:prod -- --version 1.0.2
+```
+
+Create both the ZIP and a signed CRX using the private key registered for Verified
+CRX Uploads:
+
+```bash
+chmod 600 /secure/location/recall-cws-upload.pem
+RECALL_EXTENSION_SIGNING_KEY_PATH=/secure/location/recall-cws-upload.pem \
+  npm run extension:package:prod -- --version 1.0.2 --crx
+```
+
+Set `CHROME_BIN` if Google Chrome is not in its standard macOS or Linux location.
+Packages are written to `artifacts/chrome/` with SHA-256 checksums and JSON release
+metadata. Verify the checksums from that directory:
+
+```bash
+cd artifacts/chrome
+shasum -a 256 -c recall-chrome-v1.0.2.sha256
+```
+
+The packaging command refuses to generate a signing key, rejects keys readable by
+other local users, and never copies a PEM file into the artifact directory. Keep the
+private key outside the repository.
+
+For tagged CI releases, add the PEM contents as the `CHROME_EXTENSION_SIGNING_KEY`
+secret in the GitHub `production` environment:
+
+```bash
+gh secret set CHROME_EXTENSION_SIGNING_KEY \
+  --env production \
+  < /secure/location/recall-cws-upload.pem
+```
+
+The tag workflow packages the extension with the tag version and retains the ZIP,
+CRX, checksums, and metadata as a GitHub Actions artifact for 30 days. Upload only
+one package for a given Chrome Web Store version: use the signed CRX when Verified
+CRX Uploads is enabled, otherwise use the ZIP.
+
 ---
 
 ## iOS Share Sheet (via Shortcuts)
@@ -222,6 +267,7 @@ Configure a GitHub environment named `production` with:
 | `VERCEL_TOKEN` | Environment secret |
 | `VERCEL_ORG_ID` | Environment variable |
 | `VERCEL_PROJECT_ID` | Environment variable |
+| `CHROME_EXTENSION_SIGNING_KEY` | Environment secret |
 
 The Vercel access token must be stored as a secret, not a plain environment
 variable. Optional deployment approvals can be configured through the protection

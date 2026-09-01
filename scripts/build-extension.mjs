@@ -28,6 +28,7 @@ export async function buildExtension(
   {
     projectRoot = DEFAULT_PROJECT_ROOT,
     outputRoot = resolve(projectRoot, "build", "extension"),
+    version,
   } = {},
 ) {
   if (!TARGETS.has(target)) {
@@ -49,7 +50,12 @@ export async function buildExtension(
     resolve(outputDirectory, file),
   )));
 
-  const manifest = { ...baseManifest, ...environment };
+  if (version !== undefined) validateExtensionVersion(version);
+  const manifest = {
+    ...baseManifest,
+    ...environment,
+    ...(version === undefined ? {} : { version }),
+  };
   await writeFile(
     resolve(outputDirectory, "manifest.json"),
     `${JSON.stringify(manifest, null, 2)}\n`,
@@ -63,9 +69,7 @@ function validateManifestConfiguration(baseManifest, environment, target) {
   if (!baseManifest || typeof baseManifest !== "object" || Array.isArray(baseManifest)) {
     throw new Error("Extension base manifest must be an object");
   }
-  if (!/^\d+(?:\.\d+){0,3}$/.test(baseManifest.version ?? "")) {
-    throw new Error("Extension version must contain one to four numeric components");
-  }
+  validateExtensionVersion(baseManifest.version);
   if (!environment || typeof environment !== "object" || Array.isArray(environment)) {
     throw new Error(`Missing extension configuration for ${target}`);
   }
@@ -74,6 +78,15 @@ function validateManifestConfiguration(baseManifest, environment, target) {
   }
   if (!Array.isArray(environment.host_permissions) || environment.host_permissions.length !== 1) {
     throw new Error(`${target} must declare exactly one API host permission`);
+  }
+}
+
+export function validateExtensionVersion(version) {
+  if (typeof version !== "string" || !/^\d+(?:\.\d+){0,3}$/.test(version)) {
+    throw new Error("Extension version must contain one to four numeric components");
+  }
+  if (version.split(".").some((component) => Number(component) > 65535)) {
+    throw new Error("Extension version components must not exceed 65535");
   }
 }
 

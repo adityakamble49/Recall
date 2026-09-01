@@ -31,8 +31,10 @@ describe("production deployment configuration", () => {
     expect(workflow).toContain("cancel-in-progress: false");
     expect(workflow).toContain("VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}");
     expect(workflow).not.toContain("VERCEL_TOKEN: ${{ vars.VERCEL_TOKEN }}");
+    expect(workflow).toContain("CHROME_EXTENSION_SIGNING_KEY: ${{ secrets.CHROME_EXTENSION_SIGNING_KEY }}");
     expect(workflow).toMatch(/actions\/checkout@[a-f0-9]{40}/);
     expect(workflow).toMatch(/actions\/setup-node@[a-f0-9]{40}/);
+    expect(workflow).toMatch(/actions\/upload-artifact@[a-f0-9]{40}/);
   });
 
   it("tests and builds the exact artifact deployed to production", () => {
@@ -40,6 +42,9 @@ describe("production deployment configuration", () => {
 
     expect(workflow).toContain("run: npm test");
     expect(workflow).toContain("run: npm exec -- tsc --noEmit");
+    expect(workflow).toContain('npm run extension:package:prod -- --version "${GITHUB_REF_NAME#v}" --crx');
+    expect(workflow).toContain("path: artifacts/chrome/recall-chrome-*");
+    expect(workflow).toContain('rm -f "$RUNNER_TEMP/recall-extension-upload.pem"');
     expect(workflow).toContain("npm install --global --ignore-scripts vercel@59.10.0");
     expect(workflow).toContain("vercel build --prod");
     expect(workflow).toContain("vercel deploy --prebuilt --prod");
