@@ -210,10 +210,34 @@ DATABASE_URL="your_prod_url" npx drizzle-kit push
 
 ### Vercel
 
-1. Push to GitHub
-2. Import the repo on [vercel.com](https://vercel.com)
-3. Add environment variables: `DATABASE_URL`, `AUTH_SECRET`, `AUTH_GOOGLE_ID`, `AUTH_GOOGLE_SECRET`, `RECALL_EXTENSION_IDS`
-4. Deploy
+Vercel is production-only. Its Git integration remains connected to the repository,
+but automatic deployments are disabled for every branch and pull request in
+`vercel.json`. Production is deployed only by pushing a strict semantic version tag
+whose commit belongs to `main`.
+
+Configure a GitHub environment named `production` with:
+
+| Name | GitHub setting |
+|------|----------------|
+| `VERCEL_TOKEN` | Environment secret |
+| `VERCEL_ORG_ID` | Environment variable |
+| `VERCEL_PROJECT_ID` | Environment variable |
+
+The Vercel access token must be stored as a secret, not a plain environment
+variable. Optional deployment approvals can be configured through the protection
+rules for the GitHub `production` environment.
+
+Create a production release from a commit already on `main`:
+
+```bash
+git tag -a v0.1.0 -m "Release v0.1.0"
+git push origin v0.1.0
+```
+
+The workflow validates the tag and commit, runs tests and type checking, installs an
+exact Vercel CLI version in the isolated CI runner, builds with Vercel's production
+configuration, and deploys that exact prebuilt artifact. Pushing commits or opening
+pull requests does not create a Vercel deployment.
 
 ### Environment Variables
 
