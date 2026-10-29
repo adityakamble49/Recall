@@ -2,9 +2,9 @@
 
 import { db } from "@/lib/db";
 import { collections, bookmarks } from "@/lib/db/schema";
-import { desc, eq, and, count, notInArray, isNull, or, inArray } from "drizzle-orm";
+import { desc, eq, and, count, notInArray, isNull, or, inArray, ne } from "drizzle-orm";
 import { auth } from "@/auth";
-import { validateBookmarkFields } from "@/lib/validation";
+import { validateBookmarkFields, validateBookmarkTitle, validateCollectionFields, type CollectionFields } from "@/lib/validation";
 import { fetchPageTitle } from "@/lib/fetch-title";
 import { getOwnedActiveCollectionId, isValidCollectionId } from "@/lib/collection-access";
 
@@ -55,14 +55,18 @@ export async function getCollectionsWithCount() {
   return cols.map((col: any) => ({ ...col, bookmarkCount: countMap.get(col.id) ?? 0 }));
 }
 
-export async function createCollection(data: { name: string; description?: string; icon?: string; color?: string }): Promise<{ error?: string }> {
+export async function createCollection(data: CollectionFields): Promise<{ error?: string }> {
   const session = await getSession();
   const userId = session.user!.id!;
+  const check = validateCollectionFields(data, { requireName: true });
+  if (!check.valid) return { error: check.error };
+  const fields = check.value;
+
   const [existing] = await (db as any).select({ id: collections.id }).from(collections)
-    .where(and(eq(collections.userId, userId), eq(collections.name, data.name), eq(collections.isDeleted, false)))
+    .where(and(eq(collections.userId, userId), eq(collections.name, fields.name), eq(collections.isDeleted, false)))
     .limit(1);
   if (existing) return { error: "Collection already exists" };
-  await (db as any).insert(collections).values({ userId, ...data });
+  await (db as any).insert(collections).values({ ...fields, userId });
   return {};
 }
 
@@ -219,18 +223,44 @@ export async function fetchBookmarkTitle(id: number): Promise<{ error?: string; 
   return { title };
 }
 
-export async function renameBookmark(id: number, title: string) {
+export async function renameBookmark(id: number, title: string): Promise<{ error?: string }> {
   const session = await getSession();
+  const check = validateBookmarkTitle(title);
+  if (!check.valid) return { error: check.error };
   await (db as any).update(bookmarks)
-    .set({ title })
+    .set({ title: check.value })
     .where(and(eq(bookmarks.id, id), eq(bookmarks.userId, session.user!.id!)));
+  return {};
 }
 
-export async function updateCollection(id: number, data: { name?: string; description?: string }) {
+export async function updateCollection(id: number, data: { name?: string; description?: string }): Promise<{ error?: string }> {
   const session = await getSession();
-  await (db as any).update(collections)
-    .set(data)
-    .where(and(eq(collections.id, id), eq(collections.userId, session.user!.id!)));
+  const userId = session.user!.id!;
+  if (!isValidCollectionId(id)) return { error: "Collection not found" };
+  const check = validateCollectionFields(
+    { name: data?.name, description: data?.description },
+    { requireName: false },
+  );
+  if (!check.valid) return { error: check.error };
+  const fields = check.value;
+  if (Object.keys(fields).length === 0) return {};
+
+  if (fields.name !== undefined) {
+    const [existing] = await db.select({ id: collections.id }).from(collections)
+      .where(and(
+        eq(collections.userId, userId),
+        eq(collections.name, fields.name),
+        eq(collections.isDeleted, false),
+        ne(collections.id, id),
+      ))
+      .limit(1);
+    if (existing) return { error: "Collection already exists" };
+  }
+
+  await db.update(collections)
+    .set(fields)
+    .where(and(eq(collections.id, id), eq(collections.userId, userId)));
+  return {};
 }
 
 export async function mergeCollections(sourceIds: number[], targetId: number): Promise<{ error?: string }> {

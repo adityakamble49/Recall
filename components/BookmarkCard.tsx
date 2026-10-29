@@ -78,7 +78,8 @@ export function BookmarkCard({ bookmark, collections, showCollection, selected, 
   async function handleRename() {
     const newTitle = prompt("Rename bookmark:", bookmark.title);
     if (!newTitle || newTitle.trim() === bookmark.title) return;
-    await renameBookmark(bookmark.id, newTitle.trim());
+    const result = await renameBookmark(bookmark.id, newTitle.trim());
+    if (result.error) { alert(result.error); return; }
     setShowMenu(false);
     await refresh();
   }

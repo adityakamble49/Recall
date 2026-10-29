@@ -3,6 +3,7 @@ import { getApiPrincipal, getApiUser, hasTrustedSessionMutationOrigin } from "@/
 import { db } from "@/lib/db";
 import { collections, bookmarks } from "@/lib/db/schema";
 import { eq, count, and, desc } from "drizzle-orm";
+import { validateCollectionFields } from "@/lib/validation";
 
 export async function GET() {
   const userId = await getApiUser("collections:read");
@@ -34,17 +35,20 @@ export async function POST(req: NextRequest) {
   }
   const userId = principal.userId;
 
-  const { name, description, icon, color } = await req.json();
-  if (!name) return NextResponse.json({ error: "name required" }, { status: 400 });
+  let body: unknown;
+  try { body = await req.json(); } catch { return NextResponse.json({ error: "Invalid JSON" }, { status: 400 }); }
+  const check = validateCollectionFields(body, { requireName: true });
+  if (!check.valid) return NextResponse.json({ error: check.error }, { status: 400 });
+  const fields = check.value;
 
   // Duplicate name check
   const [existing] = await (db as any).select({ id: collections.id }).from(collections)
-    .where(and(eq(collections.userId, userId), eq(collections.name, name), eq(collections.isDeleted, false)))
+    .where(and(eq(collections.userId, userId), eq(collections.name, fields.name), eq(collections.isDeleted, false)))
     .limit(1);
   if (existing) return NextResponse.json({ error: "Collection already exists" }, { status: 409 });
 
   const [created] = await (db as any).insert(collections)
-    .values({ userId, name, description, icon, color })
+    .values({ ...fields, userId })
     .returning({ id: collections.id });
 
   return NextResponse.json({ id: created.id });

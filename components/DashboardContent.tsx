@@ -202,7 +202,8 @@ export function DashboardContent({ collections: initialCollections, allBookmarks
   async function handleRenameCollection(id: number, currentName: string) {
     const newName = prompt("Rename collection:", currentName);
     if (!newName || newName.trim() === currentName) return;
-    await updateCollection(id, { name: newName.trim() });
+    const result = await updateCollection(id, { name: newName.trim() });
+    if (result.error) { alert(result.error); return; }
     await refresh();
   }
 
