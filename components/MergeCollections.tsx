@@ -1,24 +1,29 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { mergeCollections } from "@/app/actions";
 import { type Collection } from "@/lib/db/schema";
 import { X, GitMerge } from "lucide-react";
 
 type Props = {
   collections: (Collection & { bookmarkCount: number })[];
+  onMerge: (sourceIds: number[], targetId: number) => Promise<{ error?: string }>;
 };
 
-export function MergeCollections({ collections }: Props) {
+export function MergeCollections({ collections, onMerge }: Props) {
   const [open, setOpen] = useState(false);
   const [selected, setSelected] = useState<Set<number>>(new Set());
   const [targetId, setTargetId] = useState<number | null>(null);
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     if (!open) return;
     function handleEscape(e: KeyboardEvent) {
-      if (e.key === "Escape") { setOpen(false); setSelected(new Set()); setTargetId(null); }
+      if (e.key !== "Escape") return;
+      setOpen(false);
+      setSelected(new Set());
+      setTargetId(null);
+      setError(null);
     }
     document.addEventListener("keydown", handleEscape);
     return () => document.removeEventListener("keydown", handleEscape);
@@ -26,22 +31,36 @@ export function MergeCollections({ collections }: Props) {
 
   if (collections.length < 2) return null;
 
+  const defaultId = collections.find((c) => c.isDefault)?.id;
+
+  function close() {
+    setOpen(false);
+    setSelected(new Set());
+    setTargetId(null);
+    setError(null);
+  }
+
   function toggle(id: number) {
     const next = new Set(selected);
     if (next.has(id)) next.delete(id); else next.add(id);
-    if (targetId === id && !next.has(id)) setTargetId(null);
+    // The default collection can only be a target, so selecting it fixes the target.
+    if (defaultId !== undefined && next.has(defaultId)) setTargetId(defaultId);
+    else if (targetId !== null && !next.has(targetId)) setTargetId(null);
     setSelected(next);
+    setError(null);
   }
 
   async function handleMerge() {
     if (!targetId || selected.size < 2) return;
     const sourceIds = [...selected].filter((id) => id !== targetId);
     setLoading(true);
+    setError(null);
     try {
-      await mergeCollections(sourceIds, targetId);
-      setOpen(false);
-      setSelected(new Set());
-      setTargetId(null);
+      const result = await onMerge(sourceIds, targetId);
+      if (result.error) { setError(result.error); return; }
+      close();
+    } catch {
+      setError("Couldn't merge collections. Try again.");
     } finally {
       setLoading(false);
     }
@@ -60,13 +79,14 @@ export function MergeCollections({ collections }: Props) {
   }
 
   const selectedArr = [...selected];
+  const targetOptions = defaultId !== undefined && selected.has(defaultId) ? [defaultId] : selectedArr;
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-overlay-bg backdrop-blur-sm p-4">
       <div className="bg-surface rounded-2xl border border-border-hover shadow-floating w-full max-w-md overflow-hidden">
         <div className="px-6 py-4 flex justify-between items-center border-b border-border">
           <h2 className="text-sm font-semibold text-primary">Merge Collections</h2>
-          <button onClick={() => { setOpen(false); setSelected(new Set()); setTargetId(null); }} className="text-muted hover:text-primary transition-colors">
+          <button onClick={close} className="text-muted hover:text-primary transition-colors">
             <X className="w-4 h-4" />
           </button>
         </div>
@@ -91,7 +111,7 @@ export function MergeCollections({ collections }: Props) {
                   className="w-full px-4 py-2.5 text-base md:text-sm border border-border rounded-xl bg-raised text-primary focus:outline-none focus:ring-2 focus:ring-primary/20 appearance-none pr-10"
                 >
                   <option value="" disabled>Select target...</option>
-                  {selectedArr.map((id) => {
+                  {targetOptions.map((id) => {
                     const col = collections.find((c) => c.id === id);
                     return <option key={id} value={id}>{col?.name}</option>;
                   })}
@@ -102,9 +122,10 @@ export function MergeCollections({ collections }: Props) {
               </div>
             </div>
           )}
+          {error && <p role="alert" className="text-xs text-destructive">{error}</p>}
           <div className="pt-2 flex gap-3">
              <button
-              onClick={() => { setOpen(false); setSelected(new Set()); setTargetId(null); }}
+              onClick={close}
               className="flex-1 py-2.5 bg-surface text-secondary border border-border hover:border-border-hover rounded-xl text-sm font-medium transition-colors"
             >
               Cancel

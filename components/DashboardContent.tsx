@@ -6,7 +6,7 @@ import {
   getAllBookmarks, getBookmarkChecksum,
   createBookmark, createCollection, deleteCollection, updateCollection,
   restoreCollection, permanentlyDeleteCollection, getDeletedCollections,
-  getCollectionsWithCount, bulkMoveBookmarks, bulkDeleteBookmarks,
+  getCollectionsWithCount, bulkMoveBookmarks, bulkDeleteBookmarks, mergeCollections,
 } from "@/app/actions";
 import { DashboardProvider } from "@/lib/dashboard-context";
 import { BookmarkCard } from "@/components/BookmarkCard";
@@ -206,6 +206,14 @@ export function DashboardContent({ collections: initialCollections, allBookmarks
     await refresh();
   }
 
+  async function handleMergeCollections(sourceIds: number[], targetId: number): Promise<{ error?: string }> {
+    const result = await mergeCollections(sourceIds, targetId);
+    if (result.error) return result;
+    if (activeId !== null && sourceIds.includes(activeId)) setActiveId(targetId);
+    await refresh();
+    return {};
+  }
+
   function toggleSelect(id: number) {
     setSelectedIds(prev => {
       const next = new Set(prev);
@@ -258,7 +266,7 @@ export function DashboardContent({ collections: initialCollections, allBookmarks
         <aside>
           <div className="flex items-center justify-between mb-5">
             <h2 className="text-xs font-semibold font-mono uppercase tracking-wider text-muted">Collections</h2>
-            <MergeCollections collections={collections} />
+            <MergeCollections collections={collections} onMerge={handleMergeCollections} />
           </div>
 
           <div className="space-y-1">

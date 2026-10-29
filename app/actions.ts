@@ -6,7 +6,7 @@ import { desc, eq, and, count, notInArray, isNull, or, inArray } from "drizzle-o
 import { auth } from "@/auth";
 import { validateBookmarkFields } from "@/lib/validation";
 import { fetchPageTitle } from "@/lib/fetch-title";
-import { getOwnedActiveCollectionId } from "@/lib/collection-access";
+import { getOwnedActiveCollectionId, isValidCollectionId } from "@/lib/collection-access";
 
 async function getSession() {
   const session = await auth();
@@ -233,26 +233,42 @@ export async function updateCollection(id: number, data: { name?: string; descri
     .where(and(eq(collections.id, id), eq(collections.userId, session.user!.id!)));
 }
 
-export async function mergeCollections(sourceIds: number[], targetId: number) {
+export async function mergeCollections(sourceIds: number[], targetId: number): Promise<{ error?: string }> {
   const session = await getSession();
   const userId = session.user!.id!;
 
-  await verifyCollectionOwnership(targetId, userId);
-  const ownedSources = await (db as any).select({ id: collections.id }).from(collections)
-    .where(and(eq(collections.userId, userId), inArray(collections.id, sourceIds)));
-  if (ownedSources.length !== sourceIds.length) throw new Error("Collection not found");
+  if (!Array.isArray(sourceIds) || !sourceIds.every(isValidCollectionId) || !isValidCollectionId(targetId)) {
+    return { error: "Collection not found" };
+  }
+  const uniqueSourceIds = [...new Set(sourceIds)];
+  if (uniqueSourceIds.length === 0) return { error: "Select collections to merge" };
+  if (uniqueSourceIds.includes(targetId)) return { error: "The target can't also be merged away" };
 
-  // Move all bookmarks from sources to target
-  for (const srcId of sourceIds) {
-    await (db as any).update(bookmarks)
-      .set({ collectionId: targetId })
-      .where(and(eq(bookmarks.collectionId, srcId), eq(bookmarks.userId, userId)));
+  if (await getOwnedActiveCollectionId(userId, targetId) === null) return { error: "Collection not found" };
+  const ownedSources: { id: number; isDefault: boolean }[] = await (db as any)
+    .select({ id: collections.id, isDefault: collections.isDefault }).from(collections)
+    .where(and(
+      eq(collections.userId, userId),
+      eq(collections.isDeleted, false),
+      inArray(collections.id, uniqueSourceIds),
+    ));
+  if (ownedSources.length !== uniqueSourceIds.length) return { error: "Collection not found" };
+  if (ownedSources.some((source) => source.isDefault)) {
+    return { error: "Recall Later can only be a merge target" };
   }
-  // Delete source collections
-  for (const srcId of sourceIds) {
-    await (db as any).delete(collections)
-      .where(and(eq(collections.id, srcId), eq(collections.userId, userId)));
-  }
+
+  // Sources are hard-deleted: their bookmarks are moved first, so nothing is lost
+  // and empty collections would only clutter the trash.
+  await (db as any).update(bookmarks)
+    .set({ collectionId: targetId })
+    .where(and(eq(bookmarks.userId, userId), inArray(bookmarks.collectionId, uniqueSourceIds)));
+  await (db as any).delete(collections)
+    .where(and(
+      eq(collections.userId, userId),
+      eq(collections.isDefault, false),
+      inArray(collections.id, uniqueSourceIds),
+    ));
+  return {};
 }
 
 
