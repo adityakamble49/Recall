@@ -156,8 +156,7 @@ The production artifact is written to `build/extension/prod/` and contains only 
 
 ### Production Packages
 
-Create a versioned, deterministic ZIP for local inspection or Chrome Web Store
-upload:
+Create a versioned, deterministic ZIP for local inspection:
 
 ```bash
 npm run extension:package:prod -- --version 1.0.2
@@ -195,9 +194,11 @@ gh secret set CHROME_EXTENSION_SIGNING_KEY \
 ```
 
 The tag workflow packages the extension with the tag version and retains the ZIP,
-CRX, checksums, and metadata as a GitHub Actions artifact for 30 days. Upload only
-one package for a given Chrome Web Store version: use the signed CRX when Verified
-CRX Uploads is enabled, otherwise use the ZIP.
+CRX, checksums, and metadata as a GitHub Actions artifact for 30 days.
+
+Recall's Chrome Web Store item has Verified CRX Uploads enabled, so the Store
+accepts only the CRX signed with the registered key and rejects ZIP uploads. Upload
+one signed CRX per Store version.
 
 ---
 
