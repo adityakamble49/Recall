@@ -51,7 +51,9 @@ export default function PrivacyPage() {
         <p>
           The extension reads tab URLs and titles only when you act in its popup: saving the current tab, saving
           a tab group as a collection, or reopening a collection as tabs. It does not read page contents, track
-          your browsing history, or run on the websites you visit. It communicates only with recall.ltd.
+          your browsing history, or run on the websites you visit. It sends your data only to recall.ltd. The
+          extension popup loads its fonts from Google Fonts, which receives your IP address and browser details
+          when the popup opens, as with any web font request.
         </p>
       </Section>
 
@@ -64,7 +66,7 @@ export default function PrivacyPage() {
 
       <Section title="Service providers">
         <ul className="list-disc pl-5 space-y-2">
-          <li>Google, for sign-in.</li>
+          <li>Google, for sign-in and for the web fonts used by the extension popup.</li>
           <li>Vercel, which hosts the website and API.</li>
           <li>Neon, which hosts the database.</li>
         </ul>
