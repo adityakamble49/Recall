@@ -49,4 +49,35 @@ describe("production deployment configuration", () => {
     expect(workflow).toContain("vercel build --prod");
     expect(workflow).toContain("vercel deploy --prebuilt --prod");
   });
+
+  it("publishes the extension in a separate job that never sees the signing key", () => {
+    const workflow = readFileSync(WORKFLOW_PATH, "utf8");
+    const [deployJob, publishJob] = workflow.split("\n  publish-extension:\n");
+
+    expect(publishJob).toBeDefined();
+    expect(publishJob).toContain("needs: deploy");
+    expect(publishJob).toContain("environment: chrome-web-store");
+    expect(publishJob).toContain("id-token: write");
+    expect(publishJob).toContain("group: chrome-web-store");
+    expect(publishJob).toContain("CWS_ITEM_ID: mifdhnokgeipckgedpbnccdlllpdpcel");
+    expect(publishJob).toContain('sha256sum -c "recall-chrome-${GITHUB_REF_NAME}.sha256"');
+    expect(publishJob).toContain("access_token_scopes: https://www.googleapis.com/auth/chromewebstore");
+    expect(publishJob).toContain("create_credentials_file: false");
+    expect(publishJob).toContain("CWS_ACCESS_TOKEN: ${{ steps.store-auth.outputs.access_token }}");
+    expect(publishJob).toContain("node scripts/publish-extension.mjs");
+    expect(publishJob).not.toContain("CHROME_EXTENSION_SIGNING_KEY");
+    expect(publishJob).not.toContain("secrets.");
+
+    expect(deployJob).not.toContain("id-token");
+    expect(deployJob).not.toContain("google-github-actions");
+    expect(deployJob).not.toContain("CWS_");
+  });
+
+  it("pins every action to a full commit SHA", () => {
+    const workflow = readFileSync(WORKFLOW_PATH, "utf8");
+    const uses = [...workflow.matchAll(/uses:\s*(\S+)/g)].map((match) => match[1]);
+
+    expect(uses.length).toBeGreaterThan(0);
+    for (const reference of uses) expect(reference).toMatch(/@[a-f0-9]{40}$/);
+  });
 });

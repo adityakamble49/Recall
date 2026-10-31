@@ -194,7 +194,9 @@ gh secret set CHROME_EXTENSION_SIGNING_KEY \
 ```
 
 The tag workflow packages the extension with the tag version and retains the ZIP,
-CRX, checksums, and metadata as a GitHub Actions artifact for 30 days.
+CRX, checksums, and metadata as a GitHub Actions artifact for 30 days. It then
+submits the CRX to the Chrome Web Store when the extension changed (see
+[Chrome Web Store](#chrome-web-store)).
 
 Recall's Chrome Web Store item has Verified CRX Uploads enabled, so the Store
 accepts only the CRX signed with the registered key and rejects ZIP uploads. Upload
@@ -286,6 +288,57 @@ The workflow validates the tag and commit, runs tests and type checking, install
 exact Vercel CLI version in the isolated CI runner, builds with Vercel's production
 configuration, and deploys that exact prebuilt artifact. Pushing commits or opening
 pull requests does not create a Vercel deployment.
+
+### Chrome Web Store
+
+After the web deploy, the `publish-extension` job submits the signed CRX built for
+the same tag. It runs `scripts/publish-extension.mjs`, which uses the Chrome Web
+Store API v2:
+
+1. Compares the packaged extension with the version the Store currently serves,
+   ignoring the manifest version. If nothing changed, the job succeeds without
+   uploading, so web-only releases never trigger a Store review.
+2. Stops if a different version is pending review or approved but not yet
+   published. Re-run the job after that version goes live.
+3. Uploads the CRX, waits for processing, and publishes with `DEFAULT_PUBLISH`.
+   The new version goes live automatically when review passes.
+
+The Store has no rollback. To undo an extension release, revert the change and tag a
+higher version.
+
+The job gets a 30-minute access token through GitHub OIDC and Google Workload
+Identity Federation, so no Store credential is stored in GitHub. It never receives
+the CRX signing key, and Verified CRX Uploads means a Store token alone cannot
+upload an unsigned package.
+
+Configure a GitHub environment named `chrome-web-store`, limited to `v*.*.*` tags,
+with these environment variables:
+
+| Name | Value |
+|------|-------|
+| `CWS_PUBLISHER_ID` | Developer Dashboard → Publisher → Settings |
+| `CWS_WIF_PROVIDER` | `projects/<number>/locations/global/workloadIdentityPools/<pool>/providers/<provider>` |
+| `CWS_SERVICE_ACCOUNT` | Service account email linked in the Developer Dashboard |
+
+One-time Google Cloud setup:
+
+1. Create a project and enable the **Chrome Web Store API**.
+2. Create a service account with no IAM roles, then add its email in the Developer
+   Dashboard under **Account**.
+3. Create a Workload Identity pool and an OIDC provider for
+   `https://token.actions.githubusercontent.com` that only admits this repository,
+   `refs/tags/v*` and the `chrome-web-store` environment.
+4. Grant `roles/iam.workloadIdentityUser` on the service account to that provider's
+   principals for this repository.
+
+Check what a release would do without uploading, using a locally issued token:
+
+```bash
+CWS_PUBLISHER_ID=... CWS_ITEM_ID=mifdhnokgeipckgedpbnccdlllpdpcel \
+CWS_ACCESS_TOKEN="$(gcloud auth print-access-token --impersonate-service-account=SA_EMAIL --scopes=https://www.googleapis.com/auth/chromewebstore)" \
+  node scripts/publish-extension.mjs --dry-run --version 1.2.3 \
+  --crx artifacts/chrome/recall-chrome-v1.2.3.crx --zip artifacts/chrome/recall-chrome-v1.2.3.zip
+```
 
 ### Environment Variables
 
