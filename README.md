@@ -221,7 +221,8 @@ Save links from any iOS app (Safari, Twitter, Reddit, etc.) directly to Recall u
 3. Tap **ⓘ** at the bottom → enable **Show in Share Sheet**
 4. Done — "Save to Recall" now appears when you share any link on iOS
 
-> Get your API token from **Settings → API Token** in the Recall web app.
+> Get your API token from **Settings → API Token** in the Recall web app. The section
+> appears only for accounts listed in `RECALL_API_TOKEN_EMAILS`.
 
 ---
 
@@ -295,6 +296,7 @@ pull requests does not create a Vercel deployment.
 | `AUTH_GOOGLE_ID` | Google OAuth client ID |
 | `AUTH_GOOGLE_SECRET` | Google OAuth client secret |
 | `RECALL_EXTENSION_IDS` | Comma-separated Chrome Web Store extension IDs allowed to connect |
+| `RECALL_API_TOKEN_EMAILS` | Comma-separated account emails allowed to create and use personal API tokens; unset disables them |
 
 ---
 

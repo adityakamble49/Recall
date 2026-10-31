@@ -1,5 +1,5 @@
 import { NextRequest } from "next/server";
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 const mocks = vi.hoisted(() => ({
   auth: vi.fn(),
@@ -21,13 +21,16 @@ vi.mock("@/lib/db", () => ({
   db: {
     select: () => ({
       from: () => ({
-        where: () => ({ limit: mocks.selectLimit }),
+        innerJoin: () => ({
+          where: () => ({ limit: mocks.selectLimit }),
+        }),
       }),
     }),
   },
 }));
 vi.mock("@/lib/db/schema", () => ({
   apiTokens: { token: "token", userId: "userId" },
+  users: { id: "id", email: "email" },
 }));
 
 import { getApiPrincipal, getApiUser, hasTrustedSessionMutationOrigin } from "@/lib/api-auth";
@@ -35,10 +38,15 @@ import { getApiPrincipal, getApiUser, hasTrustedSessionMutationOrigin } from "@/
 describe("API authentication", () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    vi.stubEnv("RECALL_API_TOKEN_EMAILS", "mobile@example.com");
     mocks.headerValues.clear();
     mocks.auth.mockResolvedValue(null);
     mocks.authenticateExtensionBearer.mockResolvedValue(null);
     mocks.selectLimit.mockResolvedValue([]);
+  });
+
+  afterEach(() => {
+    vi.unstubAllEnvs();
   });
 
   it("uses the authenticated web session when no explicit credential is supplied", async () => {
@@ -90,14 +98,31 @@ describe("API authentication", () => {
     expect(mocks.selectLimit).not.toHaveBeenCalled();
   });
 
-  it("keeps personal bearer tokens available for API clients", async () => {
+  it("keeps personal bearer tokens available for allowlisted owners", async () => {
     mocks.headerValues.set("authorization", "Bearer personal-token");
-    mocks.selectLimit.mockResolvedValue([{ userId: "mobile-user" }]);
+    mocks.selectLimit.mockResolvedValue([{ userId: "mobile-user", email: "Mobile@Example.com" }]);
 
     await expect(getApiPrincipal()).resolves.toEqual({
       userId: "mobile-user",
       authType: "personal-token",
     });
+  });
+
+  it("rejects a valid personal token whose owner is no longer allowlisted", async () => {
+    mocks.auth.mockResolvedValue({ user: { id: "web-user" } });
+    mocks.headerValues.set("authorization", "Bearer personal-token");
+    mocks.selectLimit.mockResolvedValue([{ userId: "mobile-user", email: "removed@example.com" }]);
+
+    await expect(getApiPrincipal()).resolves.toBeNull();
+    expect(mocks.auth).not.toHaveBeenCalled();
+  });
+
+  it("rejects every personal token when the allowlist is unset", async () => {
+    vi.stubEnv("RECALL_API_TOKEN_EMAILS", "");
+    mocks.headerValues.set("authorization", "Bearer personal-token");
+    mocks.selectLimit.mockResolvedValue([{ userId: "mobile-user", email: "mobile@example.com" }]);
+
+    await expect(getApiPrincipal()).resolves.toBeNull();
   });
 
   it("keeps the user-only compatibility helper", async () => {

@@ -1,5 +1,5 @@
 import {
-  pgTable, text, integer, timestamp, serial, primaryKey, boolean, unique, index,
+  pgTable, text, integer, timestamp, serial, primaryKey, boolean, index,
 } from "drizzle-orm/pg-core";
 import { sql } from "drizzle-orm";
 import type { AdapterAccountType } from "next-auth/adapters";
@@ -107,16 +107,6 @@ export const extensionCredentials = pgTable("extension_credentials", {
 }, (table) => [
   index("extension_credentials_user_id_idx").on(table.userId),
   index("extension_credentials_expires_at_idx").on(table.expiresAt),
-]);
-
-export const featureFlags = pgTable("feature_flags", {
-  id: serial("id").primaryKey(),
-  userId: text("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
-  flag: text("flag").notNull(),
-  enabled: boolean("enabled").default(true).notNull(),
-  createdAt: timestamp("created_at").default(sql`CURRENT_TIMESTAMP`).notNull(),
-}, (table) => [
-  unique().on(table.userId, table.flag),
 ]);
 
 export type Collection = typeof collections.$inferSelect;

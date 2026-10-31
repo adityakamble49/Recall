@@ -1,11 +1,12 @@
 import { auth } from "@/auth";
 import { db } from "@/lib/db";
-import { apiTokens } from "@/lib/db/schema";
+import { apiTokens, users } from "@/lib/db/schema";
 import { eq } from "drizzle-orm";
 import { headers } from "next/headers";
 import type { NextRequest } from "next/server";
 import { authenticateExtensionBearer, type ExtensionScope } from "@/lib/extension-auth";
 import { DEVELOPMENT_WEB_ORIGIN, PRODUCTION_WEB_ORIGIN } from "@/lib/app-config";
+import { isApiTokenEmailAllowed } from "@/lib/api-token-access";
 
 export type ApiPrincipal = {
   userId: string;
@@ -25,14 +26,18 @@ export async function getApiPrincipal(requiredScope?: ExtensionScope): Promise<A
     }
     if (authHeader.startsWith("Bearer recall_ext_")) return null;
 
-    // Personal bearer tokens support API/mobile clients.
+    // Personal bearer tokens support API/mobile clients, but only while the
+    // owner's email remains on the allowlist.
     if (authHeader.startsWith("Bearer ")) {
       const token = authHeader.slice(7);
-      const [row] = await db.select({ userId: apiTokens.userId })
+      const [row] = await db.select({ userId: apiTokens.userId, email: users.email })
         .from(apiTokens)
+        .innerJoin(users, eq(users.id, apiTokens.userId))
         .where(eq(apiTokens.token, token))
         .limit(1);
-      if (row?.userId) return { userId: row.userId, authType: "personal-token" };
+      if (row?.userId && isApiTokenEmailAllowed(row.email)) {
+        return { userId: row.userId, authType: "personal-token" };
+      }
     }
     return null;
   }

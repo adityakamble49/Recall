@@ -3,7 +3,7 @@ import { SignInPrompt } from "@/components/SignInPrompt";
 import { ExtensionToken } from "@/components/ExtensionToken";
 import Image from "next/image";
 import { LogOut, Key, User } from "lucide-react";
-import { hasFeatureFlag, FLAGS } from "@/lib/feature-flags";
+import { isApiTokenEmailAllowed } from "@/lib/api-token-access";
 import { listActiveExtensionCredentials } from "@/lib/extension-auth";
 import { ConnectedExtensions } from "@/components/ConnectedExtensions";
 
@@ -11,10 +11,8 @@ export default async function SettingsPage() {
   const session = await auth();
   if (!session?.user) return <SignInPrompt />;
 
-  const [showApiTokens, extensionCredentials] = await Promise.all([
-    hasFeatureFlag(session.user.id!, FLAGS.API_TOKENS),
-    listActiveExtensionCredentials(session.user.id!),
-  ]);
+  const showApiTokens = isApiTokenEmailAllowed(session.user.email);
+  const extensionCredentials = await listActiveExtensionCredentials(session.user.id!);
 
   return (
     <div className="max-w-lg mx-auto px-6 md:px-10 py-10 md:py-16 space-y-10">
@@ -38,7 +36,7 @@ export default async function SettingsPage() {
         </div>
       </section>
 
-      {/* API Token (preview — feature-flagged) */}
+      {/* API Token (restricted to RECALL_API_TOKEN_EMAILS) */}
       {showApiTokens && (
         <section className="space-y-3">
           <h2 className="text-xs font-semibold font-mono uppercase tracking-wider text-muted px-1">API Token</h2>
