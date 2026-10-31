@@ -193,10 +193,13 @@ gh secret set CHROME_EXTENSION_SIGNING_KEY \
   < /secure/location/recall-cws-upload.pem
 ```
 
-The tag workflow packages the extension with the tag version and retains the ZIP,
-CRX, checksums, and metadata as a GitHub Actions artifact for 30 days. It then
-submits the CRX to the Chrome Web Store when the extension changed (see
-[Chrome Web Store](#chrome-web-store)).
+The tag workflow packages the extension with the tag version and passes the ZIP,
+CRX, checksums, and metadata to the publish job as a GitHub Actions artifact. It
+then submits the CRX to the Chrome Web Store when the extension changed (see
+[Chrome Web Store](#chrome-web-store)). Because the repository is public, the
+publish job deletes the artifact when it succeeds. After a failure the artifact is
+kept for 7 days so the job can be re-run. To inspect a package, build it locally
+with the commands above.
 
 Recall's Chrome Web Store item has Verified CRX Uploads enabled, so the Store
 accepts only the CRX signed with the registered key and rejects ZIP uploads. Upload

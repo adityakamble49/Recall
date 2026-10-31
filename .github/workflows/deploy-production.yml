@@ -18,6 +18,8 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 30
     environment: production
+    outputs:
+      extension-artifact-id: ${{ steps.upload-extension.outputs.artifact-id }}
     env:
       VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
       VERCEL_ORG_ID: ${{ vars.VERCEL_ORG_ID }}
@@ -91,12 +93,14 @@ jobs:
         run: rm -f "$RUNNER_TEMP/recall-extension-upload.pem"
 
       - name: Upload extension packages
+        id: upload-extension
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
           name: recall-chrome-${{ github.ref_name }}
           path: artifacts/chrome/recall-chrome-*
           if-no-files-found: error
-          retention-days: 30
+          # Normally deleted by publish-extension; this only bounds failed runs.
+          retention-days: 7
           compression-level: 0
 
       - name: Install pinned Vercel CLI
@@ -130,6 +134,7 @@ jobs:
     permissions:
       contents: read
       id-token: write
+      actions: write
     concurrency:
       group: chrome-web-store
       cancel-in-progress: false
@@ -188,3 +193,18 @@ jobs:
           --version "${GITHUB_REF_NAME#v}"
           --crx "artifacts/chrome/recall-chrome-${GITHUB_REF_NAME}.crx"
           --zip "artifacts/chrome/recall-chrome-${GITHUB_REF_NAME}.zip"
+
+      # The repository is public, so any signed-in GitHub user could download the
+      # artifact. Remove it once published or skipped; keep it after a failure so
+      # this job can be re-run.
+      - name: Delete extension artifact
+        if: success()
+        env:
+          GH_TOKEN: ${{ github.token }}
+          ARTIFACT_ID: ${{ needs.deploy.outputs.extension-artifact-id }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          [[ "$ARTIFACT_ID" =~ ^[0-9]+$ ]] || { echo "Missing artifact ID" >&2; exit 1; }
+          gh api --method DELETE "repos/${GITHUB_REPOSITORY}/actions/artifacts/${ARTIFACT_ID}"
+          echo "- Deleted extension artifact \`recall-chrome-${GITHUB_REF_NAME}\`" >> "$GITHUB_STEP_SUMMARY"

@@ -73,6 +73,20 @@ describe("production deployment configuration", () => {
     expect(deployJob).not.toContain("CWS_");
   });
 
+  it("deletes the extension artifact after a successful publish job", () => {
+    const workflow = readFileSync(WORKFLOW_PATH, "utf8");
+    const [deployJob, publishJob] = workflow.split("\n  publish-extension:\n");
+
+    expect(deployJob).toContain("extension-artifact-id: ${{ steps.upload-extension.outputs.artifact-id }}");
+    expect(deployJob).toContain("retention-days: 7");
+    expect(deployJob).not.toContain("actions: write");
+    expect(publishJob).toContain("actions: write");
+    const deleteStep = publishJob.slice(publishJob.indexOf("- name: Delete extension artifact"));
+    expect(deleteStep).toContain("if: success()");
+    expect(deleteStep).toContain("ARTIFACT_ID: ${{ needs.deploy.outputs.extension-artifact-id }}");
+    expect(deleteStep).toContain('gh api --method DELETE "repos/${GITHUB_REPOSITORY}/actions/artifacts/${ARTIFACT_ID}"');
+  });
+
   it("pins every action to a full commit SHA", () => {
     const workflow = readFileSync(WORKFLOW_PATH, "utf8");
     const uses = [...workflow.matchAll(/uses:\s*(\S+)/g)].map((match) => match[1]);
